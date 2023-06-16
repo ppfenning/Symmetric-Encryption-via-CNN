@@ -12,6 +12,7 @@ deeplake = "^3.6.3"
 tensorflow = "^2.12.0"
 flask = "^2.3.2"
 jupyter = "^1.0.0"
+pandas = "^2.0.2"
 
 
 [build-system]
