@@ -24,5 +24,6 @@ def get_speaker_file(speaker_id: int, section_no: int) -> Path:
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     audio = dec_to_bin(read_wav(get_speaker_file(340, 340))[1])
-    key_df = get_key(audio.shape[0], np.random.random(2), np.random.random(2), np.random.random(3), np.random.random(1))
+    k, n = 1000, audio.shape[0]
+    key_df = get_key(k, n, np.random.random(2), np.random.random(2), np.random.random(3), np.random.random(1))
 

@@ -42,9 +42,10 @@ def __get_bin(data):
     })
 
 
-def get_key(n, henon_0, ikeda_0, lorenz_0, logistic_0):
-    sol_henon = sim_chaotic_attractor(henon, n, henon_0)
-    sol_ikeda = sim_chaotic_attractor(ikeda, n, ikeda_0)
-    sol_lorenz = sim_chaotic_attractor(lorenz, n, lorenz_0)
-    sol_logistic = sim_chaotic_attractor(logistic, n, logistic_0)
-    return __get_bin(__transform(np.concatenate((sol_henon, sol_ikeda, sol_lorenz, sol_logistic), axis=1)))
+def get_key(k, n, henon_0, ikeda_0, lorenz_0, logistic_0):
+    series_len = k+n
+    sol_henon = sim_chaotic_attractor(henon, series_len, henon_0)
+    sol_ikeda = sim_chaotic_attractor(ikeda, series_len, ikeda_0)
+    sol_lorenz = sim_chaotic_attractor(lorenz, series_len, lorenz_0)
+    sol_logistic = sim_chaotic_attractor(logistic, series_len, logistic_0)
+    return __get_bin(__transform(np.concatenate((sol_henon, sol_ikeda, sol_lorenz, sol_logistic), axis=1))).loc[k:]
