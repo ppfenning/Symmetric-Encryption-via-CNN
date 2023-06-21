@@ -1,9 +1,8 @@
 from pathlib import Path
 import numpy as np
-import pandas as pd
 from os import getenv
 from reader import read_wav
-from chaos import get_public_key
+from keygen import get_public_key
 from conversion import dec_to_bin
 from dotenv import load_dotenv
 
