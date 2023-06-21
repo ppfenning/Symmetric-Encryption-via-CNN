@@ -1,9 +1,16 @@
 from pathlib import Path
-import matplotlib.pyplot as plt
-from verify import plot_wav
+from os import getenv
+from verify import compare_files
+from dotenv import load_dotenv
 
-datadir = Path('../data')
+env_file = Path("../config/.env")
+
+if env_file.exists():
+    load_dotenv(env_file)
+
+datadir = Path(getenv('DATADIR', default="../data"))
 wavedir = datadir.joinpath('wav48')
+outdir = Path(getenv('OUTDIR', default=datadir.joinpath("out")))
 
 
 def get_speaker_file(speaker_id: int, section_no: int) -> Path:
@@ -12,5 +19,5 @@ def get_speaker_file(speaker_id: int, section_no: int) -> Path:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    ax = plot_wav(get_speaker_file(340, 340), datadir.joinpath("out/test.wav"))
-    plt.show()
+    check_sum = compare_files(get_speaker_file(340, 340), outdir.joinpath('test.wav'))
+
