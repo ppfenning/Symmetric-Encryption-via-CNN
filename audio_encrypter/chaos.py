@@ -1,6 +1,7 @@
 from scipy.integrate import odeint
 from conversion import dec_to_bin
 import numpy as np
+import pandas as pd
 
 
 def sim_chaotic_attractor(func, n, v0, **kwargs):
@@ -34,9 +35,16 @@ def __transform(data):
     return np.mod(np.floor(np.abs(data) * 10 ** 10), 256).astype(np.int16)
 
 
+def __get_bin(data):
+    return pd.DataFrame({
+        f"key{n}": dec_to_bin(col)
+        for n, col in enumerate(data.T)
+    })
+
+
 def get_key(n, henon_0, ikeda_0, lorenz_0, logistic_0):
     sol_henon = sim_chaotic_attractor(henon, n, henon_0)
     sol_ikeda = sim_chaotic_attractor(ikeda, n, ikeda_0)
     sol_lorenz = sim_chaotic_attractor(lorenz, n, lorenz_0)
     sol_logistic = sim_chaotic_attractor(logistic, n, logistic_0)
-    return __transform(np.concatenate((sol_henon, sol_ikeda, sol_lorenz, sol_logistic), axis=1))
+    return __get_bin(__transform(np.concatenate((sol_henon, sol_ikeda, sol_lorenz, sol_logistic), axis=1)))

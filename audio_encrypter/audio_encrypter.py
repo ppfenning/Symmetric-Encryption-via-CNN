@@ -23,9 +23,6 @@ def get_speaker_file(speaker_id: int, section_no: int) -> Path:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    rate, data = read_wav(get_speaker_file(340, 340))
-    bin_df = pd.DataFrame(dec_to_bin(data), columns=['audio'])
-    soln = get_key(data.shape[0], np.random.random(2), np.random.random(2), np.random.random(3), np.random.random(1))
-    for n, col in enumerate(soln.T):
-        bin_df[f"key{n}"] = dec_to_bin(col)
+    audio = dec_to_bin(read_wav(get_speaker_file(340, 340))[1])
+    key_df = get_key(audio.shape[0], np.random.random(2), np.random.random(2), np.random.random(3), np.random.random(1))
 
