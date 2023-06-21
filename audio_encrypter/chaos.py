@@ -1,8 +1,10 @@
 from scipy.integrate import odeint
+from conversion import dec_to_bin
 import numpy as np
 
 
-def sim_chaotic_attractor(func, v0, t, **kwargs):
+def sim_chaotic_attractor(func, n, v0, **kwargs):
+    t = np.linspace(0, 1, n)
     return odeint(func, v0, t, tuple(kwargs))
 
 
@@ -26,3 +28,15 @@ def ikeda(v0, t, mu=0.7, beta=0.4, gamma=6):
 
 def logistic(v0, t, r=4):
     return r * v0[0] * (1 - v0[0])
+
+
+def __transform(data):
+    return np.mod(np.floor(np.abs(data) * 10 ** 10), 256).astype(np.int16)
+
+
+def get_key(n, henon_0, ikeda_0, lorenz_0, logistic_0):
+    sol_henon = sim_chaotic_attractor(henon, n, henon_0)
+    sol_ikeda = sim_chaotic_attractor(ikeda, n, ikeda_0)
+    sol_lorenz = sim_chaotic_attractor(lorenz, n, lorenz_0)
+    sol_logistic = sim_chaotic_attractor(logistic, n, logistic_0)
+    return __transform(np.concatenate((sol_henon, sol_ikeda, sol_lorenz, sol_logistic), axis=1))
