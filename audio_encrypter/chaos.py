@@ -42,7 +42,7 @@ def __get_bin(data):
     })
 
 
-def get_key(k, n, henon_0, ikeda_0, lorenz_0, logistic_0):
+def get_public_key(k, n, henon_0, ikeda_0, lorenz_0, logistic_0):
     series_len = k+n
     sol_henon = sim_chaotic_attractor(henon, series_len, henon_0)
     sol_ikeda = sim_chaotic_attractor(ikeda, series_len, ikeda_0)
