@@ -6,7 +6,8 @@ from chaos import (
     sim_chaotic_attractor,
     henon,
     lorenz,
-    ikeda
+    ikeda,
+    logistic
 )
 from dotenv import load_dotenv
 
@@ -27,5 +28,5 @@ def get_speaker_file(speaker_id: int, section_no: int) -> Path:
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     rate, data = read_wav(get_speaker_file(340, 340))
-    sol = sim_chaotic_attractor(ikeda, [0, 0], np.linspace(0, 4, data.shape[0]))
+    sol = sim_chaotic_attractor(logistic, [0.1], np.linspace(0, 4, data.shape[0]))
 

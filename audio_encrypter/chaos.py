@@ -24,5 +24,5 @@ def ikeda(v0, t, mu=0.7, beta=0.4, gamma=6):
     return 1 + mu * (x * np.cos(t_n)) - y * np.sin(t_n), mu * (x * np.sin(t_n) + y * np.cos(t_n))
 
 
-def logistic(v0, t,):
-    pass
+def logistic(v0, t, r=4):
+    return r * v0[0] * (1 - v0[0])
