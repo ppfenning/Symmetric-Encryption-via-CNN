@@ -6,10 +6,12 @@ from keygen import get_public_key
 from conversion import dec_to_bin
 from dotenv import load_dotenv
 
-env_file = Path("../config/.env")
+configdir = Path("../config")
+env_file = configdir.joinpath(".env")
 
 if env_file.exists():
     load_dotenv(env_file)
+
 
 datadir = Path(getenv('DATADIR', default="../data"))
 wavedir = datadir.joinpath('wav48')
@@ -22,7 +24,19 @@ def get_speaker_file(speaker_id: int, section_no: int) -> Path:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
     audio = dec_to_bin(read_wav(get_speaker_file(340, 340))[1])
-    k, n = 1000, audio.shape[0]
-    key_df = get_public_key(k, n, np.random.random(2), np.random.random(2), np.random.random(3), np.random.random(1))
+
+    private_key = {
+        'throw_away': 1000,
+        'henon_0': np.random.random(2),
+        'ikeda_0': np.random.random(2),
+        'lorenz_0': np.random.random(3),
+        'logistic_0': np.random.random(1),
+    }
+
+    key_df = get_public_key(
+        audio.shape[0],
+        **private_key
+    )
 

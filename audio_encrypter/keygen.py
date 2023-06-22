@@ -21,11 +21,11 @@ def __get_bin(data):
     })
 
 
-def get_public_key(k, n, henon_0, ikeda_0, lorenz_0, logistic_0):
-    series_len = k+n
+def get_public_key(byte_len, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0):
+    series_len = byte_len + throw_away
     return __get_bin(__transform(np.concatenate((
         sim_chaotic_attractor(henon, series_len, henon_0),
         sim_chaotic_attractor(ikeda, series_len, ikeda_0),
         sim_chaotic_attractor(lorenz, series_len, lorenz_0),
         sim_chaotic_attractor(logistic, series_len, logistic_0)
-    ), axis=1))).loc[k:]
+    ), axis=1))).loc[throw_away:].reset_index(drop=True)
