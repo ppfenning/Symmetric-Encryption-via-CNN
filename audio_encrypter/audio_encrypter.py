@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 from os import getenv
 from reader import read_wav
-from keygen import get_public_key
+from keygen import get_encryption
 from conversion import dec_to_bin
 from dotenv import load_dotenv
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     audio = dec_to_bin(read_wav(get_speaker_file(340, 340))[1])
 
-    private_key = {
+    encryption_key = {
         'throw_away': 1000,
         'henon_0': np.random.random(2),
         'ikeda_0': np.random.random(2),
@@ -35,8 +35,8 @@ if __name__ == '__main__':
         'logistic_0': np.random.random(1),
     }
 
-    key_df = get_public_key(
+    key_df = get_encryption(
         audio.shape[0],
-        **private_key
+        **encryption_key
     )
 

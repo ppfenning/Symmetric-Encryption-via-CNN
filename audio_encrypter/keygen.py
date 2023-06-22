@@ -21,7 +21,7 @@ def __get_bin(data):
     })
 
 
-def get_public_key(byte_len, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0):
+def get_encryption(byte_len, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0):
     series_len = byte_len + throw_away
     return __get_bin(__transform(np.concatenate((
         sim_chaotic_attractor(henon, series_len, henon_0),
