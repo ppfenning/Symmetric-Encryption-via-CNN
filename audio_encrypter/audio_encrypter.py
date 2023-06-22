@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 from os import getenv
 from reader import read_wav
-from keygen import get_encryption
+from encryption import get_encryption
 from conversion import dec_to_bin
 from dotenv import load_dotenv
 
