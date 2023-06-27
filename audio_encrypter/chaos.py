@@ -1,7 +1,5 @@
 from scipy.integrate import odeint
-from conversion import dec_to_bin
 import numpy as np
-import pandas as pd
 
 
 def sim_chaotic_attractor(func, n, v0, **kwargs):
