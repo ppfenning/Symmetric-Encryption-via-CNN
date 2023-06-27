@@ -12,7 +12,7 @@ from .chaos import (
 
 
 def __transform(data, dtype):
-    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**int(re.findall(r'\d+', dtype)[0])).astype(f'u{dtype}')
+    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**int(re.findall(r'\d+', dtype)[0]))
 
 
 def get_key(keypath: Path, throw_away: int):
@@ -47,6 +47,3 @@ def get_encryption(audio, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0)
     )[throw_away:]
     combo = np.append(audio[:, np.newaxis], encryption, axis=1)
     return np.bitwise_xor.reduce(combo.astype(f'u{str_type}'), axis=1).astype(str_type)
-
-
-
