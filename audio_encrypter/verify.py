@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
-from audio_encrypter import read_wav, get_speaker_file
+from .audio_encrypter import read_wav
 from acoustid import fingerprint_file
 
 
@@ -19,8 +19,8 @@ def __get_axis_data(fname: Path) -> pd.DataFrame:
     rate, data = read_wav(fname)
     return pd.DataFrame({
         'Time[s]': __get_time_array(rate, len(data)),
-        fname: data}
-    ).set_index("Time[s]", drop=True)
+        fname: data
+    }).set_index("Time[s]", drop=True)
 
 
 def __get_file_df(*files) -> pd.DataFrame:
@@ -46,7 +46,3 @@ def compare_files(file1: Path, file2: Path) -> pd.Series:
         [df[file1].equals(df[file2]), fprints[0] == fprints[1]],
         index=['checksum', 'fingerprints']
     )
-
-
-if __name__ == '__main__':
-    compare_files(get_speaker_file(340, 340), Path('../data/out/decrypted.wav'))
