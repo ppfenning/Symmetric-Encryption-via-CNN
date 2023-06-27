@@ -11,7 +11,7 @@ if config.exists():
 
 
 DATADIR = Path(getenv('DATADIR', default="data"))
-KEYPATH = Path(getenv('KEYPATH', default="~/.chaos-encrypt/private_key.pkl"))
+KEYPATH = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/private_key.pkl")))
 OUTDIR = Path(getenv('OUTDIR', default=DATADIR.joinpath("out")))
 
 

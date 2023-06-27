@@ -15,13 +15,13 @@ def __transform(data, dtype):
     return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**int(re.findall(r'\d+', dtype)[0]))
 
 
-def get_key(keypath: Path, throw_away: int):
+def get_key(keypath: Path):
     if not keypath.exists():
         keypath.parent.mkdir(parents=True, exist_ok=True)
         with keypath.open('wb') as writer:
             pickle.dump(
                 {
-                    'throw_away': throw_away,
+                    'throw_away': int(np.random.randint(1000, 10000, 1)),
                     'henon_0': np.random.random(2),
                     'ikeda_0': np.random.random(2),
                     'lorenz_0': np.random.random(3),
@@ -33,7 +33,7 @@ def get_key(keypath: Path, throw_away: int):
         return pickle.loads(reader.read())
 
 
-def get_encryption(audio, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0):
+def __get_encryption(audio, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0):
     file_len = audio.size + throw_away
     str_type = audio.dtype.name
     encryption = __transform(
@@ -47,3 +47,7 @@ def get_encryption(audio, *, throw_away, henon_0, ikeda_0, lorenz_0, logistic_0)
     )[throw_away:]
     combo = np.append(audio[:, np.newaxis], encryption, axis=1)
     return np.bitwise_xor.reduce(combo.astype(f'u{str_type}'), axis=1).astype(str_type)
+
+
+def get_encryption(audio, keypath):
+    return __get_encryption(audio, **get_key(keypath))

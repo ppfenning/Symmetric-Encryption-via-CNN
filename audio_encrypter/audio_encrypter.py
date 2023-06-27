@@ -1,6 +1,5 @@
 from pathlib import Path
-from os import getenv
-from .encryption import get_encryption, get_key
+from .encryption import get_encryption
 import numpy as np
 from scipy.io.wavfile import read, write
 import io
@@ -18,12 +17,11 @@ def write_wav(rate: int, data: np.ndarray, outfile: Path):
 
 def audio_encrypter(in_file: Path, outfile: Path, keypath: Path) -> [int, np.ndarray]:
 
-    throw_away = int(getenv('THROW_AWAY', default=np.random.randint(1000, 2000, 1)))
     rate, audio = read_wav(in_file)
 
     return rate, audio, write_wav(
         rate,
-        get_encryption(audio, **get_key(keypath, throw_away)),
+        get_encryption(audio, keypath),
         outfile
     )
 
