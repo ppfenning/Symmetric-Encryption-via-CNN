@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
-from audio_encrypter import read_wav
+from audio_encrypter import read_wav, get_speaker_file
 from acoustid import fingerprint_file
 
 
@@ -48,3 +48,5 @@ def compare_files(file1: Path, file2: Path) -> pd.Series:
     )
 
 
+if __name__ == '__main__':
+    compare_files(get_speaker_file(340, 340), Path('../data/out/decrypted.wav'))
