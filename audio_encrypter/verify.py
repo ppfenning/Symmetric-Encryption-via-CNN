@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
-from .audio_encrypter import read_wav
+from .chaotic_audio_encryption import read_wav
 from acoustid import fingerprint_file
 
 

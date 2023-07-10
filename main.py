@@ -1,7 +1,7 @@
 from pathlib import Path
 from os import getenv
 from dotenv import load_dotenv
-from audio_encrypter.audio_encrypter import audio_encrypter
+from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption
 from audio_encrypter.verify import compare_files
 
 config = Path("../config/.env")
@@ -21,6 +21,10 @@ def get_speaker_file(speaker_id: int, section_no: int) -> Path:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    _, in_val, encrypt = audio_encrypter(get_speaker_file(340, 340), OUTDIR.joinpath('encrypted.wav'), KEYPATH)
-    _, _, decrypt = audio_encrypter(OUTDIR.joinpath('encrypted.wav'), OUTDIR.joinpath('decrypted.wav'), KEYPATH)
-    comp = compare_files(get_speaker_file(340, 340), OUTDIR.joinpath('decrypted.wav'))
+    in_file = get_speaker_file(340, 340)
+    encrypt_file = OUTDIR.joinpath('encrypted.wav')
+    decrypt_file =  OUTDIR.joinpath('decrypted.wav')
+
+    encrypt = chaotic_audio_encryption(in_file, encrypt_file, KEYPATH)
+    decrypt = chaotic_audio_encryption(encrypt_file, decrypt_file, KEYPATH)
+    comp = compare_files(in_file, decrypt_file)
