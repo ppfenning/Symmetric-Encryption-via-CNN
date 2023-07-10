@@ -48,9 +48,14 @@ def __chaotic_cipher(audio_len, str_type, *, throw_away, henon_0, ikeda_0, loren
 
 def __chaotic_ciphertext(audio, chaos_key):
     str_type = audio.dtype.name
-    cipher = __chaotic_cipher(audio.size, str_type, **chaos_key)
-    combo = np.append(audio[:, np.newaxis], cipher, axis=1)
-    return np.bitwise_xor.reduce(combo.astype(f'u{str_type}'), axis=1).astype(str_type)
+    return np.bitwise_xor.reduce(
+        np.append(
+            audio[:, np.newaxis],
+            __chaotic_cipher(audio.size, str_type, **chaos_key),
+            axis=1
+        ).astype(f'u{str_type}'),
+        axis=1
+    ).astype(str_type)
 
 
 def chaotic_ciphertext(audio, keypath):
