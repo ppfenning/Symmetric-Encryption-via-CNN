@@ -1,27 +1,35 @@
 from scipy.integrate import odeint
+from numba import njit, cfunc
 import numpy as np
+from bounded_executor import BoundedProcessPoolExecutor
 
 
-def sim_chaotic_attractor(func, n, v0, **kwargs):
-    """
-    The sim_chaotic_attractor function takes in a function, the number of points to be plotted, and an initial value.
-    It then returns the values of that function over time using odeint.
-
-    :param func: Specify the function that will be used to calculate the derivative
-    :param n: Determine the number of points in the time series
-    :param v0: Set the initial conditions for the system
-    :param **kwargs: Pass a variable number of keyword arguments to a function
-    :return: A numpy array of the values of v
-    :doc-author: Trelent
-    """
-    t = np.linspace(0, 1, n)
-    return odeint(func, v0, t, tuple(kwargs))
+def __ode_runner(func, v0, t, args):
+    return odeint(func, v0, t, args)
 
 
-def henon(v0, t, a=1.4, b=0.3):
+def ode_wrapper(func, audio_len, v0, primer, params):
+    t = np.linspace(0, 1, audio_len + primer)
+    args = tuple(params.values())
+    return __ode_runner(func, v0, t, args)[primer:]
+
+
+def chaotic_cipher(audio_len, henon_0, ikeda_0, lorenz_0, logistic_0):
+    pool = BoundedProcessPoolExecutor()
+    futures = [
+        pool.submit(ode_wrapper, henon, audio_len, **henon_0),
+        pool.submit(ode_wrapper, ikeda, audio_len, **ikeda_0),
+        pool.submit(ode_wrapper, lorenz, audio_len, **lorenz_0),
+        pool.submit(ode_wrapper, logistic, audio_len, **logistic_0)
+    ]
+    return np.concatenate([future.result() for future in futures], axis=1)
+
+
+@njit
+def henon(v0, t, *params):
     """
     The henon function is a simple function that takes in three parameters:
-        v0, t, and a=b=0.3. The first parameter is the initial value of x and y
+        v0, t, and a=1.4, b=0.3. The first parameter is the initial value of x and y
         (v0), the second parameter is time (t), and the third parameter are two
         constants that can be changed to alter how quickly or slowly the henon
         attractor converges to its final state.
@@ -33,11 +41,18 @@ def henon(v0, t, a=1.4, b=0.3):
     :return: A tuple of values
     :doc-author: Trelent
     """
-    x, y = v0
+
+    a = params[0]
+    b = params[1]
+
+    x = v0[0]
+    y = v0[1]
+
     return 1 - a * x ** 2 + y, b * x
 
 
-def lorenz(v0, t, sigma=10, beta=8/3, rho=28):
+@njit
+def lorenz(v0, t, *params):
     """
     The lorenz function is a function that takes in three parameters: v0, t, and sigma.
     The first parameter is the initial conditions of the system (x0, y0, z0). The second parameter
@@ -51,11 +66,19 @@ def lorenz(v0, t, sigma=10, beta=8/3, rho=28):
     :return: The derivatives of the variables x, y and z
     :doc-author: Trelent
     """
-    x, y, z = v0
+    sigma = params[0]
+    beta = params[1]
+    rho = params[2]
+    
+    x = v0[0]
+    y = v0[1]
+    z = v0[2]
+    
     return sigma * (y - x), x * (rho - z) - y, x * y - beta * z
 
 
-def ikeda(v0, t, mu=0.7, beta=0.4, gamma=6):
+@njit
+def ikeda(v0, t, *params):
     """
     The ikeda function is a nonlinear dynamical system that produces
     a chaotic attractor.  The function takes three parameters: mu, beta, and gamma.
@@ -69,12 +92,20 @@ def ikeda(v0, t, mu=0.7, beta=0.4, gamma=6):
     :return: A tuple of x and y coordinates
     :doc-author: Trelent
     """
-    x, y = v0
+    mu = params[0]
+    beta = params[1]
+    gamma = params[2]
+
+    x = v0[0]
+    y = v0[1]
+
     t_n = beta - gamma/(1 + x**2 + y**2)
+
     return 1 + mu * (x * np.cos(t_n)) - y * np.sin(t_n), mu * (x * np.sin(t_n) + y * np.cos(t_n))
 
 
-def logistic(v0, t, r=4):
+@njit
+def logistic(v0, t, *params):
     """
     The logistic function is a sigmoid function that takes in an input value and returns a value between 0 and 1.
     It is used to model the growth of populations, where the population size can never exceed some maximum.
@@ -87,4 +118,8 @@ def logistic(v0, t, r=4):
     :return: A value between 0 and 1
     :doc-author: Trelent
     """
-    return r * v0[0] * (1 - v0[0])
+    r = params[0]
+
+    x = v0[0]
+
+    return r * x * (1 - x)

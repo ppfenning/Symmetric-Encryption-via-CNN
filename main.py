@@ -3,8 +3,14 @@ from os import getenv
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
-from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption, read_wav, write_wav, chaotic_ciphertext
+from audio_encrypter.chaotic_audio_encryption import (
+    chaotic_audio_encryption,
+    read_wav,
+    write_wav
+)
 from audio_encrypter.verify import compare_files
+from timeit import timeit
+from functools import partial
 
 config = Path("config/.env")
 
@@ -15,6 +21,9 @@ if config.exists():
 DATADIR = Path(getenv('DATADIR', default="data"))
 KEYPATH = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/private_key.pkl")))
 OUTDIR = Path(getenv('OUTDIR', default=DATADIR.joinpath("out")))
+
+DATADIR.mkdir(exist_ok=True)
+OUTDIR.mkdir(exist_ok=True)
 
 
 def get_speaker_file(speaker_id: int, section_no: int) -> Path:
@@ -34,7 +43,7 @@ def get_speaker_full(speaker_id: int) -> Path:
     """
     The get_speaker_full function takes a speaker id and returns the full audio file for that speaker.
     It does this by first checking if the output file already exists, and if it doesn't, then it creates
-    the output file by concatenating all of the wav files in that speakers folder. It then returns
+    the output file by concatenating all the wav files in that speakers folder. It then returns
     the path to this new or existing audio file.
 
     :param speaker_id: int: Specify the speaker id
@@ -55,6 +64,6 @@ if __name__ == '__main__':
     in_file = get_speaker_full(340)
     encrypt_file = OUTDIR.joinpath('encrypted.wav')
     decrypt_file = OUTDIR.joinpath('decrypted.wav')
-    encrypt = chaotic_audio_encryption(in_file, encrypt_file, KEYPATH)
-    decrypt = chaotic_audio_encryption(encrypt_file, decrypt_file, KEYPATH)
+    print(timeit(partial(chaotic_audio_encryption, in_file, encrypt_file, KEYPATH), number=1))
+    print(timeit(partial(chaotic_audio_encryption, encrypt_file, decrypt_file, KEYPATH), number=1))
     comp = compare_files(in_file, decrypt_file)

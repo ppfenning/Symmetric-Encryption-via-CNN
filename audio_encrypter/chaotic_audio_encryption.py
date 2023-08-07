@@ -1,8 +1,5 @@
 from pathlib import Path
-
-import pandas as pd
-
-from .encryption import chaotic_ciphertext
+from audio_encrypter.encryption import chaotic_ciphertext
 import numpy as np
 from scipy.io.wavfile import read, write
 import io
@@ -36,7 +33,11 @@ def write_wav(rate: int, data: np.ndarray, outfile: Path) -> tuple[int, np.ndarr
     return rate, data
 
 
-def chaotic_audio_encryption(in_file: Path, outfile: Path, keypath: Path) -> tuple[int, np.ndarray]:
+def chaotic_audio_encryption(
+    in_file: Path,
+    outfile: Path,
+    keypath: Path,
+) -> tuple[int, np.ndarray]:
     """
     The chaotic_audio_encryption function takes in a .wav file, encrypts it using the chaotic_ciphertext function,
     and writes the encrypted audio to an output file. The keypath argument is used to specify where the key should be

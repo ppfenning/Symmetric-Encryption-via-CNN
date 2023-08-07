@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "capstoneii"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["pfenningpat <pat.pfenning@blastpoint.com>"]
 readme = "README.md"
@@ -17,6 +17,9 @@ matplotlib = "^3.7.1"
 python-dotenv = "^1.0.0"
 pyacoustid = "^1.2.2"
 librosa = "^0.10.0.post2"
+numba = "^0.57.1"
+bounded-executor = "^0.0.5"
+numbalsoda = "^0.3.4"
 
 
 [build-system]

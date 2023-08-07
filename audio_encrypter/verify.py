@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import tempfile
 from pathlib import Path
 import matplotlib.pyplot as plt
 from audio_encrypter.chaotic_audio_encryption import read_wav, write_wav

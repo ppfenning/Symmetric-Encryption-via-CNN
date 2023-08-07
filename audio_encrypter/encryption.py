@@ -1,30 +1,8 @@
 import pickle
-import re
 from pathlib import Path
 import numpy as np
-from .chaos import (
-    sim_chaotic_attractor,
-    henon,
-    ikeda,
-    lorenz,
-    logistic
-)
-
-
-def __transform(data, dtype):
-    """
-    The __transform function takes in a numpy array of data and the dtype of the data.
-    It then returns an array with values that are within the range of 0 to 2^n-2, where n is
-    the number of bits in each value. This is accomplished by taking absolute values, multiplying
-    by 10^10 (to ensure all numbers have at least 10 decimal places), rounding down to nearest integer,
-    and then modding by 2^n-2.
-
-    :param data: Store the data that is to be transformed
-    :param dtype: Specify the data type of the output array
-    :return: A numpy array of the input data in a specified bit format
-    :doc-author: Trelent
-    """
-    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**int(re.findall(r'\d+', dtype)[0]))
+from audio_encrypter.chaos import chaotic_cipher
+import re
 
 
 def __get_chaos_key(keypath: Path):
@@ -43,11 +21,26 @@ def __get_chaos_key(keypath: Path):
         with keypath.open('wb') as writer:
             pickle.dump(
                 {
-                    'primer': int(np.random.randint(1000, 10000, 1)),
-                    'henon_0': np.random.random(2),
-                    'ikeda_0': np.random.random(2),
-                    'lorenz_0': np.random.random(3),
-                    'logistic_0': np.random.random(1),
+                    'henon_0': {
+                        "v0": np.random.random(2),
+                        "params": dict(zip(["a", "b"], np.array([1.4, 0.3], dtype=float))),
+                        'primer': int(np.random.randint(100, 500, 1))
+                    },
+                    'ikeda_0': {
+                        "v0": np.random.random(2),
+                        "params": dict(zip(["mu", "beta", "gamma"], np.array([0.7, 0.4, 6], dtype=float))),
+                        'primer': int(np.random.randint(100, 500, 1))
+                    },
+                    'lorenz_0': {
+                        "v0": np.random.random(3),
+                        "params": dict(zip(["sigma", "beta", "rho"], np.array([10, 8/3, 28], dtype=float))),
+                        'primer': int(np.random.randint(100, 500, 1))
+                    },
+                    'logistic_0': {
+                        "v0": np.random.random(1),
+                        "params": dict(zip(["r"], np.array([4], dtype=float))),
+                        'primer': int(np.random.randint(100, 500, 1))
+                    },
                 }
                 , writer
             )
@@ -55,36 +48,20 @@ def __get_chaos_key(keypath: Path):
         return pickle.loads(reader.read())
 
 
-def __chaotic_cipher(audio_len, str_type, *, primer, henon_0, ikeda_0, lorenz_0, logistic_0, ):
+def __transform(data, byte_len):
     """
-    The __chaotic_cipher function is a helper function that takes in the length of an audio file,
-    the type of string to return (either 'bytes' or 'str'), and four initial conditions for chaotic attractors.
-    The function then simulates each chaotic attractor with the given initial conditions, concatenates them together,
-    and transforms them into either bytes or a string. The first primer number of elements are thrown away before 
-    returning the transformed array.
-    
-    :param audio_len: Determine how long the audio file is
-    :param str_type: Determine the type of string to return
-    :param *: Indicate that the following parameters are keyword only
-    :param primer: Throw away the first few values of the chaotic attractors
-    :param henon_0: Set the initial conditions of the henon attractor
-    :param ikeda_0: Set the initial conditions for the ikeda attractor
-    :param lorenz_0: Set the initial conditions for the lorenz attractor
-    :param logistic_0: Initialize the logistic map
-    :param : Determine the length of the audio file
-    :return: A numpy array of the chaotic cipher
+    The __transform function takes in a numpy array of data and the dtype of the data.
+    It then returns an array with values that are within the range of 0 to 2^n-2, where n is
+    the number of bits in each value. This is accomplished by taking absolute values, multiplying
+    by 10^10 (to ensure all numbers have at least 10 decimal places), rounding down to nearest integer,
+    and then modding by 2^n-2.
+
+    :param data: Store the data that is to be transformed
+    :param dtype: Specify the data type of the output array
+    :return: A numpy array of the input data in a specified bit format
     :doc-author: Trelent
     """
-    file_len = audio_len + primer
-    return __transform(
-        np.concatenate((
-            sim_chaotic_attractor(henon, file_len, henon_0),
-            sim_chaotic_attractor(ikeda, file_len, ikeda_0),
-            sim_chaotic_attractor(lorenz, file_len, lorenz_0),
-            sim_chaotic_attractor(logistic, file_len, logistic_0)
-        ), axis=1)
-        , str_type
-    )[primer:]
+    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
 
 
 def __chaotic_ciphertext(audio, chaos_key):
@@ -100,13 +77,13 @@ def __chaotic_ciphertext(audio, chaos_key):
     :doc-author: Trelent
     """
     str_type = audio.dtype.name
+    byte_len = int(re.findall(r'\d+', str_type)[0])
     return np.bitwise_xor.reduce(
-        np.append(
-            audio[:, np.newaxis],
-            __chaotic_cipher(audio.size, str_type, **chaos_key),
+        np.concatenate(
+            [audio[:, np.newaxis], __transform(chaotic_cipher(audio.size, **chaos_key), byte_len)],
             axis=1
-        ).astype(f'u{str_type}'),
-        axis=1
+        ).astype(f'u{str_type}')
+        , axis=1
     ).astype(str_type)
 
 
