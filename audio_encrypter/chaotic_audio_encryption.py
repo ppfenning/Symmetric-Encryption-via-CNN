@@ -3,6 +3,7 @@ from audio_encrypter.encryption import chaotic_ciphertext
 import numpy as np
 from scipy.io.wavfile import read, write
 import io
+from time import time
 
 
 def read_wav(fname: Path) -> (int, np.ndarray):
@@ -30,14 +31,13 @@ def write_wav(rate: int, data: np.ndarray, outfile: Path) -> tuple[int, np.ndarr
     """
     Path.mkdir(outfile.parent, exist_ok=True)
     write(outfile, rate, data)
-    return rate, data
 
 
 def chaotic_audio_encryption(
     in_file: Path,
     outfile: Path,
     keypath: Path,
-) -> tuple[int, np.ndarray]:
+) -> tuple[int, np.ndarray, float]:
     """
     The chaotic_audio_encryption function takes in a .wav file, encrypts it using the chaotic_ciphertext function,
     and writes the encrypted audio to an output file. The keypath argument is used to specify where the key should be
@@ -50,5 +50,9 @@ def chaotic_audio_encryption(
     :doc-author: Trelent
     """
     rate, audio = read_wav(in_file)
-    return write_wav(rate, chaotic_ciphertext(audio, keypath), outfile)
+    t1 = time()
+    cipher_text = chaotic_ciphertext(audio, keypath)
+    t2 = time()
+    write_wav(rate, cipher_text, outfile)
+    return rate, audio, t2-t1
 

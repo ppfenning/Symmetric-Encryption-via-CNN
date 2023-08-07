@@ -64,6 +64,10 @@ def __transform(data, byte_len):
     return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
 
 
+def __xor(columns, str_type):
+    return np.bitwise_xor.reduce(columns.astype(f"u{str_type}")).astype(str_type)
+
+
 def __chaotic_ciphertext(audio, chaos_key):
     """
     The __chaotic_ciphertext function takes an audio array and a chaos key,
@@ -78,13 +82,8 @@ def __chaotic_ciphertext(audio, chaos_key):
     """
     str_type = audio.dtype.name
     byte_len = int(re.findall(r'\d+', str_type)[0])
-    return np.bitwise_xor.reduce(
-        np.concatenate(
-            [audio[:, np.newaxis], __transform(chaotic_cipher(audio.size, **chaos_key), byte_len)],
-            axis=1
-        ).astype(f'u{str_type}')
-        , axis=1
-    ).astype(str_type)
+    cipher = __xor(__transform(chaotic_cipher(audio.shape[0], **chaos_key), byte_len).T, str_type)
+    return np.array(list(map(lambda channel: __xor(np.array([channel, cipher]), str_type), audio.T))).T
 
 
 def chaotic_ciphertext(audio, keypath):
@@ -100,3 +99,7 @@ def chaotic_ciphertext(audio, keypath):
     :doc-author: Trelent
     """
     return __chaotic_ciphertext(audio, __get_chaos_key(keypath))
+
+
+
+
