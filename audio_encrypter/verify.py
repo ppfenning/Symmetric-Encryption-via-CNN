@@ -1,8 +1,9 @@
+from itertools import chain
 import numpy as np
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
-from audio_encrypter.chaotic_audio_encryption import read_wav, write_wav
+from audio_encrypter.chaotic_audio_encryption import read_wav
 from acoustid import fingerprint_file
 
 
@@ -36,10 +37,8 @@ def __get_axis_data(fname: Path) -> pd.DataFrame:
     :doc-author: Trelent
     """
     rate, data = read_wav(fname)
-    return pd.DataFrame({
-        'Time[s]': __get_time_array(rate, len(data)),
-        fname: data
-    }).set_index("Time[s]", drop=True)
+    index = __get_time_array(rate, data.shape[0])
+    return pd.DataFrame(data, index=index, columns=[f"CHANNEL_{i}" for i in range(data.shape[1])])
 
 
 def __get_file_df(*files) -> pd.DataFrame:
@@ -56,7 +55,7 @@ def __get_file_df(*files) -> pd.DataFrame:
         yield __get_axis_data(file)
 
 
-def plot_wav(*files, figsize: tuple = (12, 8)):
+def plot_wav(*dfs, figsize: tuple = (12, 8)):
     """
     The plot_wav function takes in a list of files and plots the amplitude of each file.
 
@@ -65,13 +64,16 @@ def plot_wav(*files, figsize: tuple = (12, 8)):
     :return: A tuple of matplotlib
     :doc-author: Trelent
     """
-    figs = get_file_amps(*files).plot(subplots=True, ylabel="Amplitude", figsize=figsize)
-    plt.tight_layout()
-    plt.show()
-    return figs
+    def plotter(df):
+        figs = df.plot(subplots=True, ylabel="Amplitude", figsize=figsize)
+        plt.tight_layout()
+        plt.show()
+        return figs
+
+    return list(map(plotter, *dfs))
 
 
-def get_file_amps(*files) -> pd.DataFrame:
+def get_file_amps(*files) -> list:
     """
     The get_file_amps function takes a list of files and returns a dataframe with the amplitudes for each file.
 
@@ -79,24 +81,26 @@ def get_file_amps(*files) -> pd.DataFrame:
     :return: A dataframe with the amplitude values of each file
     :doc-author: Trelent
     """
-    return pd.concat(list(__get_file_df(*files)), axis=1)
+    return list(__get_file_df(*files))
 
 
-def compare_files(file1: Path, file2: Path) -> pd.Series:
+def all_equal(dfs):
+    return all(list(map(lambda other: dfs[0].equals(other), dfs[1:])))
+
+
+def compare_files(*files) -> bool:
     """
     The compare_files function takes two file paths as input and returns a pandas Series object
     with the following information:
-        - checksum: whether or not the files have identical amplitudes (True/False)
-        - fingerprints: whether or not the files have identical fingerprints (True/False)
+        - checksum: whether the files have identical amplitudes (True/False)
+        - fingerprints: whether the files have identical fingerprints (True/False)
 
     :param file1: Path: Specify the first file to compare
     :param file2: Path: Specify the second file that is being compared to the first
     :return: A pd
     :doc-author: Trelent
     """
-    df = get_file_amps(file1, file2)
-    fprints = list(get_fingerprints(file1, file2))
-    return pd.Series(
-        [df[file1].equals(df[file2]), fprints[0] == fprints[1]],
-        index=['checksum', 'fingerprints']
-    )
+    amps = get_file_amps(*files)
+    check = all_equal(amps)
+    plot_wav(amps)
+    return check
