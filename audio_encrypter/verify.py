@@ -88,7 +88,7 @@ def all_equal(dfs):
     return all(list(map(lambda other: dfs[0].equals(other), dfs[1:])))
 
 
-def compare_files(*files) -> bool:
+def compare_files(*files) -> [bool, list[pd.DataFrame]]:
     """
     The compare_files function takes two file paths as input and returns a pandas Series object
     with the following information:
@@ -102,5 +102,4 @@ def compare_files(*files) -> bool:
     """
     amps = get_file_amps(*files)
     check = all_equal(amps)
-    plot_wav(amps)
-    return check
+    return check, amps

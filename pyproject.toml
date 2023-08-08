@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "capstoneii"
-version = "0.2.0"
+version = "1.0.0"
 description = ""
 authors = ["pfenningpat <pat.pfenning@blastpoint.com>"]
 readme = "README.md"

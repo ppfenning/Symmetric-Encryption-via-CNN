@@ -1,15 +1,10 @@
 from pathlib import Path
 from os import getenv
 from dotenv import load_dotenv
-from audio_encrypter.chaotic_audio_encryption import (
-    chaotic_audio_encryption,
-    read_wav,
-    write_wav
-)
+from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption
 from audio_encrypter.verify import compare_files, plot_wav
 import random
 import string
-from timeit import timeit
 
 config = Path("config/.env")
 
@@ -21,7 +16,7 @@ DATADIR = Path(getenv('DATADIR', default="data"))
 PLAIN_FILES = DATADIR.joinpath("plaintext")
 ENCRYPTED_FILES = DATADIR.joinpath("encrypted")
 DECRYPTED_FILES = DATADIR.joinpath("decrypted")
-KEYPATH = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/private_key.pkl")))
+KEYPATH = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key/")))
 
 DATADIR.mkdir(exist_ok=True)
 PLAIN_FILES.mkdir(exist_ok=True)
@@ -46,9 +41,9 @@ if __name__ == '__main__':
     encrypt_chaos = ENCRYPTED_FILES.joinpath(f"CHAOS_{in_file.name}")
     decrypted_chaos = DECRYPTED_FILES.joinpath(f"CHAOS_{in_file.name}")
     encrypt_aes = ENCRYPTED_FILES.joinpath(f"AES_{in_file.name}")
-    # *_, t1 = chaotic_audio_encryption(in_file, encrypt_chaos, KEYPATH)
-    # print(t1)
-    # *_, t2 = chaotic_audio_encryption(encrypt_chaos, decrypted_chaos, KEYPATH)
-    # print(t2)
-    comps = [in_file, decrypted_chaos]
-    check = compare_files(*comps)
+    *_, t1 = chaotic_audio_encryption(in_file, encrypt_chaos, KEYPATH)
+    print(t1)
+    *_, t2 = chaotic_audio_encryption(encrypt_chaos, decrypted_chaos, KEYPATH)
+    print(t2)
+    check, amps = compare_files(*[in_file, decrypted_chaos])
+    plot_wav(amps)

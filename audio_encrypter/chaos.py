@@ -1,28 +1,33 @@
 from scipy.integrate import odeint
 from numba import njit, cfunc
 import numpy as np
-from bounded_executor import BoundedProcessPoolExecutor
 
 
 def __ode_runner(func, v0, t, args):
     return odeint(func, v0, t, args)
 
 
-def ode_wrapper(func, audio_len, v0, primer, params):
-    t = np.linspace(0, 1, audio_len + primer)
+def ode_wrapper(func, byte_len, v0, primer, params):
+    t = np.linspace(0, 1, byte_len + primer)
     args = tuple(params.values())
     return __ode_runner(func, v0, t, args)[primer:]
 
 
-def chaotic_cipher(audio_len, henon_0, ikeda_0, lorenz_0, logistic_0):
-    pool = BoundedProcessPoolExecutor()
-    futures = [
-        pool.submit(ode_wrapper, henon, audio_len, **henon_0),
-        pool.submit(ode_wrapper, ikeda, audio_len, **ikeda_0),
-        pool.submit(ode_wrapper, lorenz, audio_len, **lorenz_0),
-        pool.submit(ode_wrapper, logistic, audio_len, **logistic_0)
-    ]
-    return np.concatenate([future.result() for future in futures], axis=1)
+def chaotic_functions(chaos_key):
+    chaos_key["henon"]["func"] = henon
+    chaos_key["ikeda"]["func"] = ikeda
+    chaos_key["lorenz"]["func"] = lorenz
+    chaos_key["logistic"]["func"] = logistic
+    return chaos_key
+
+
+def chaotic_cipher(audio_len, chaos_key):
+    if byte_len := audio_len - chaos_key["bytes_cached"] > 0:
+        chaos_key = chaotic_functions(chaos_key)
+        for vals in chaos_key.values():
+            print(vals)
+    return chaos_key
+
 
 
 @njit
