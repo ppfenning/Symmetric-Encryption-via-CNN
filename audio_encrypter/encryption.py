@@ -52,16 +52,18 @@ def __transform(data, byte_len):
     return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
 
 
-def chaotic_ciphertext(audio, chaos_key_path):
-    str_type = audio.dtype.name
-    byte_len = int(re.findall(r'\d+', str_type)[0])
-    audio_len = audio.shape[0]
-    chaos_key = __get_chaos_key(chaos_key_path.joinpath("key.yaml"))
-    primer = chaos_key["primer"]
-    cipher_len = primer + audio_len
-    cipher = chaotic_cipher(cipher_len, chaos_key, str_type, byte_len)[primer:]
+def __get_new_audio(audio, cipher, str_type):
     new_audio = np.zeros(audio.shape, dtype=str_type)
     for i, channel in enumerate(audio.T):
         new_audio[:, i] = xor(np.array([channel, cipher]), str_type, 0)
     return new_audio
 
+
+def chaotic_ciphertext(audio, chaos_key_path):
+    str_type = audio.dtype.name
+    byte_len = int(re.findall(r'\d+', str_type)[0])
+    chaos_key = __get_chaos_key(chaos_key_path.joinpath("key.yaml"))
+    primer = chaos_key["primer"]
+    cipher_len = primer + audio.shape[0]
+    cipher = chaotic_cipher(cipher_len, chaos_key, str_type, byte_len)[primer:]
+    return __get_new_audio(audio, cipher, str_type)
