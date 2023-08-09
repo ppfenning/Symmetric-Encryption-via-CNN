@@ -1,34 +1,18 @@
 import yaml
 from pathlib import Path
 import numpy as np
-from audio_encrypter.chaos import chaotic_cipher
+from audio_encrypter.chaos import chaotic_cipher, xor
 import re
 
 
 def __init_key(keypath: Path):
     keypath.parent.mkdir(parents=True, exist_ok=True)
     chaos_key = {
-        'bytes_cached': 0,
-        'henon': {
-            "v0": np.random.random(2).tolist(),
-            "params": dict(zip(["a", "b"], [1.4, 0.3])),
-            'primer': int(np.random.randint(100, 500, 1))
-        },
-        'ikeda': {
-            "v0": np.random.random(2).tolist(),
-            "params": dict(zip(["mu", "beta", "gamma"], [0.7, 0.4, 6])),
-            'primer': int(np.random.randint(100, 500, 1))
-        },
-        'lorenz': {
-            "v0": np.random.random(3).tolist(),
-            "params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])),
-            'primer': int(np.random.randint(100, 500, 1))
-        },
-        'logistic': {
-            "v0": [float(np.random.random(1))],
-            "params": dict(zip(["r"], [4])),
-            'primer': int(np.random.randint(100, 500, 1))
-        },
+        'primer': int(np.random.randint(100, 500, 1)),
+        'henon': {"params": dict(zip(["a", "b"], [1.4, 0.3])), "v0": np.random.random(2).tolist()},
+        'ikeda': {"params": dict(zip(["mu", "beta", "gamma"], [0.7, 0.4, 6])), "v0": np.random.random(2).tolist()},
+        'lorenz': {"params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])), "v0": np.random.random(3).tolist()},
+        'logistic': {"params": dict(zip(["r"], [4])), "v0": np.random.random(1).tolist()},
     }
     with keypath.open('w') as writer:
         yaml.dump(chaos_key, writer)
@@ -68,17 +52,16 @@ def __transform(data, byte_len):
     return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
 
 
-def __xor(columns, str_type):
-    return np.bitwise_xor.reduce(columns.astype(f"u{str_type}")).astype(str_type)
-
-
 def chaotic_ciphertext(audio, chaos_key_path):
     str_type = audio.dtype.name
     byte_len = int(re.findall(r'\d+', str_type)[0])
+    audio_len = audio.shape[0]
     chaos_key = __get_chaos_key(chaos_key_path.joinpath("key.yaml"))
-    cipher = chaotic_cipher(byte_len, chaos_key)
-    return np.array(list(map(lambda channel: __xor(np.array([channel, cipher]), str_type), audio.T))).T
-
-
-
+    primer = chaos_key["primer"]
+    cipher_len = primer + audio_len
+    cipher = chaotic_cipher(cipher_len, chaos_key, str_type, byte_len)[primer:]
+    new_audio = np.zeros(audio.shape, dtype=str_type)
+    for i, channel in enumerate(audio.T):
+        new_audio[:, i] = xor(np.array([channel, cipher]), str_type, 0)
+    return new_audio
 

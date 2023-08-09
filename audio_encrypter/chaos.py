@@ -1,51 +1,58 @@
 from scipy.integrate import odeint
-from numba import njit, cfunc
+from numba import njit
 import numpy as np
 
 
-def __ode_runner(func, v0, t, args):
-    return odeint(func, v0, t, args)
-
-
-def ode_wrapper(func, byte_len, v0, primer, params):
-    t = np.linspace(0, 1, byte_len + primer)
-    args = tuple(params.values())
-    return __ode_runner(func, v0, t, args)[primer:]
-
-
-def chaotic_functions(chaos_key):
-    chaos_key["henon"]["func"] = henon
-    chaos_key["ikeda"]["func"] = ikeda
-    chaos_key["lorenz"]["func"] = lorenz
-    chaos_key["logistic"]["func"] = logistic
-    return chaos_key
-
-
-def chaotic_cipher(audio_len, chaos_key):
-    if byte_len := audio_len - chaos_key["bytes_cached"] > 0:
-        chaos_key = chaotic_functions(chaos_key)
-        for vals in chaos_key.values():
-            print(vals)
-    return chaos_key
-
+def __chaos_runner(func, v0, params):
+    return func(v0,  params)
 
 
 @njit
-def henon(v0, t, *params):
+def __transform(data, byte_len):
     """
-    The henon function is a simple function that takes in three parameters:
-        v0, t, and a=1.4, b=0.3. The first parameter is the initial value of x and y
-        (v0), the second parameter is time (t), and the third parameter are two
-        constants that can be changed to alter how quickly or slowly the henon
-        attractor converges to its final state.
+    The __transform function takes in a numpy array of data and the dtype of the data.
+    It then returns an array with values that are within the range of 0 to 2^n-2, where n is
+    the number of bits in each value. This is accomplished by taking absolute values, multiplying
+    by 10^10 (to ensure all numbers have at least 10 decimal places), rounding down to nearest integer,
+    and then modding by 2^n-2.
 
-    :param v0: Set the initial values of x and y
-    :param t: Determine the number of steps to take in the
-    :param a: Control the strength of the nonlinearity
-    :param b: Control the x-axis scaling
-    :return: A tuple of values
+    :param data: Store the data that is to be transformed
+    :param dtype: Specify the data type of the output array
+    :return: A numpy array of the input data in a specified bit format
     :doc-author: Trelent
     """
+    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
+
+
+def xor(columns, str_type, axis):
+    return np.bitwise_xor.reduce(columns.astype(f"u{str_type}"), axis=axis).astype(str_type)
+
+
+def chaotic_functions(chaos_inputs):
+    chaos_inputs["henon"]["func"] = henon
+    chaos_inputs["ikeda"]["func"] = ikeda
+    chaos_inputs["lorenz"]["func"] = lorenz
+    chaos_inputs["logistic"]["func"] = logistic
+    return chaos_inputs
+
+
+def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
+    chaos_inputs = chaotic_functions(chaos_inputs)
+    xored = np.zeros((cipher_len, 1))
+    t = np.linspace(0, 1, cipher_len)
+    for maps in ["henon", "ikeda", "lorenz", "logistic"]:
+        chaos_map = chaos_inputs[maps]
+        func = chaos_map["func"]
+        v0 = np.array(chaos_map["v0"])
+        params = tuple(chaos_map["params"].values())
+        columns = func(v0, t, params)
+        transformed = __transform(columns, byte_len)
+        xored = np.append(xored, transformed, axis=1)
+    return xor(xored, str_type, 1)
+
+
+@njit
+def __henon(v0, t, *params):
 
     a = params[0]
     b = params[1]
@@ -56,25 +63,15 @@ def henon(v0, t, *params):
     return 1 - a * x ** 2 + y, b * x
 
 
-@njit
-def lorenz(v0, t, *params):
-    """
-    The lorenz function is a function that takes in three parameters: v0, t, and sigma.
-    The first parameter is the initial conditions of the system (x0, y0, z0). The second parameter
-    is time. The third parameter is sigma which represents how much energy it takes to move from one state to another.
+def henon(v0, t, params):
+    return odeint(__henon, v0, t, args=params)
 
-    :param v0: Set the initial conditions for the system
-    :param t: Define the time interval
-    :param sigma: Control the strength of the coupling between x and y
-    :param beta: Control the rate of divergence of nearby trajectories
-    :param rho: Control the strength of the nonlinearity in
-    :return: The derivatives of the variables x, y and z
-    :doc-author: Trelent
-    """
+@njit
+def __lorenz(v0, t, *params):
     sigma = params[0]
     beta = params[1]
     rho = params[2]
-    
+
     x = v0[0]
     y = v0[1]
     z = v0[2]
@@ -82,21 +79,13 @@ def lorenz(v0, t, *params):
     return sigma * (y - x), x * (rho - z) - y, x * y - beta * z
 
 
-@njit
-def ikeda(v0, t, *params):
-    """
-    The ikeda function is a nonlinear dynamical system that produces
-    a chaotic attractor.  The function takes three parameters: mu, beta, and gamma.
-    The default values for these parameters are 0.7, 0.4 and 6 respectively.
+def lorenz(v0, t, params):
+    return odeint(__lorenz, v0, t, args=params)
 
-    :param v0: Set the initial conditions for the system
-    :param t: Calculate the time
-    :param mu: Control the size of the spiral
-    :param beta: Control the number of lobes in the attractor
-    :param gamma: Control the size of the spiral
-    :return: A tuple of x and y coordinates
-    :doc-author: Trelent
-    """
+
+@njit
+def __ikeda(v0, t, *params):
+
     mu = params[0]
     beta = params[1]
     gamma = params[2]
@@ -109,22 +98,18 @@ def ikeda(v0, t, *params):
     return 1 + mu * (x * np.cos(t_n)) - y * np.sin(t_n), mu * (x * np.sin(t_n) + y * np.cos(t_n))
 
 
+def ikeda(v0, t, params):
+    return odeint(__ikeda, v0, t, args=params)
+
+
 @njit
-def logistic(v0, t, *params):
-    """
-    The logistic function is a sigmoid function that takes in an input value and returns a value between 0 and 1.
-    It is used to model the growth of populations, where the population size can never exceed some maximum.
-    The logistic function has two parameters: r, which controls how fast the population grows, and k, which represents
-    the carrying capacity of the environment.
+def __logistic(v0, t, *params):
 
-    :param v0: Set the initial value of the function
-    :param t: Specify the time interval for which we want to calculate the logistic function
-    :param r: Control the growth rate of the population
-    :return: A value between 0 and 1
-    :doc-author: Trelent
-    """
     r = params[0]
-
     x = v0[0]
 
-    return r * x * (1 - x)
+    return np.array([r * x * (1 - x)])
+
+
+def logistic(v0, t, params):
+    return odeint(__logistic, v0, t, args=params)
