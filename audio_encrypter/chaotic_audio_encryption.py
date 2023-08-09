@@ -54,7 +54,7 @@ def chaotic_audio_encryption(
     print(f"Encrypting {in_file}:")
     print("="*100)
     print(f"Iterations: {nruns}")
-    print(f"File size: {in_file.lstat().st_size/(1024**2)} MB")
+    print(f"File size: {in_file.lstat().st_size/(1024**2):.2f} MB")
     rate, audio = read_wav(in_file)
     print(f"Channels: {audio.ndim}")
     print("-"*100)
@@ -66,7 +66,7 @@ def chaotic_audio_encryption(
         total_time += t2 - t1
     avg_time = total_time / nruns
     write_wav(rate, cipher_text, outfile)
-    print(f"Average encryption time: {avg_time} seconds")
+    print(f"Average encryption time: {avg_time:.5f} seconds")
     print(f"Encrypted path: {outfile}")
     return rate, cipher_text, avg_time
 
