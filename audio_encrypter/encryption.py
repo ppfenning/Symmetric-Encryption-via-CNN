@@ -53,10 +53,13 @@ def __transform(data, byte_len):
 
 
 def __get_new_audio(audio, cipher, str_type):
-    new_audio = np.zeros(audio.shape, dtype=str_type)
-    for i, channel in enumerate(audio.T):
-        new_audio[:, i] = xor(np.array([channel, cipher]), str_type, 0)
-    return new_audio
+    if audio.ndim == 1:
+        return xor(np.array([audio, cipher]), str_type, 0)
+    else:
+        new_audio = np.zeros(audio.shape, dtype=str_type)
+        for i, channel in enumerate(audio.T):
+            new_audio[:, i] = xor(np.array([channel, cipher]), str_type, 0)
+        return new_audio
 
 
 def chaotic_ciphertext(audio, chaos_key_path):

@@ -1,7 +1,10 @@
 from pathlib import Path
 from os import getenv
+import pandas as pd
 from dotenv import load_dotenv
+from functools import partial
 from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption
+import matplotlib.pyplot as plt
 from audio_encrypter.verify import compare_files, plot_wav
 import random
 import string
@@ -36,14 +39,23 @@ DECRYPTED_FILES.mkdir(exist_ok=True)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    fname = "WAV_10MG.wav"
-    in_file = PLAIN_FILES.joinpath(fname)
-    encrypt_chaos = ENCRYPTED_FILES.joinpath(f"CHAOS_{in_file.name}")
-    decrypted_chaos = DECRYPTED_FILES.joinpath(f"CHAOS_{in_file.name}")
-    encrypt_aes = ENCRYPTED_FILES.joinpath(f"AES_{in_file.name}")
-    *_, t1 = chaotic_audio_encryption(in_file, encrypt_chaos, KEYPATH)
-    print(t1)
-    *_, t2 = chaotic_audio_encryption(encrypt_chaos, decrypted_chaos, KEYPATH)
-    print(t2)
-    check, amps = compare_files(*[in_file, decrypted_chaos])
-    plot_wav(amps)
+    stats = dict()
+    for in_file in PLAIN_FILES.iterdir():
+        encrypt_chaos = ENCRYPTED_FILES.joinpath(f"CHAOS_{in_file.name}")
+        size = in_file.lstat().st_size/(1024**2)
+        decrypted_chaos = DECRYPTED_FILES.joinpath(f"CHAOS_{in_file.name}")
+        nruns = 10
+        _, encrypted, avg_time_encrypt = chaotic_audio_encryption(in_file, encrypt_chaos, KEYPATH, nruns)
+        stats[in_file.name] = {
+            "size": size,
+            "encryption_time": avg_time_encrypt,
+            "channels": encrypted.ndim
+        }
+    df = pd.DataFrame(stats).T.sort_values("size")
+    fig = plt.figure()
+    ax = plt.gca()
+    ax.scatter(df["size"], df["encryption_time"], c='red', alpha=0.05, edgecolors='none')
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    plt.loglog(df["size"], df["encryption_time"])
+    plt.show()

@@ -38,7 +38,7 @@ def __get_axis_data(fname: Path) -> pd.DataFrame:
     """
     rate, data = read_wav(fname)
     index = __get_time_array(rate, data.shape[0])
-    return pd.DataFrame(data, index=index, columns=[f"CHANNEL_{i}" for i in range(data.shape[1])])
+    return pd.DataFrame(data, index=index, columns=[f"CHANNEL_{i}" for i in range(data.ndim)])
 
 
 def __get_file_df(*files) -> pd.DataFrame:
