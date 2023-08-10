@@ -1,5 +1,8 @@
 from pathlib import Path
 from os import getenv
+
+import pandas as pd
+import numpy as np
 from dotenv import load_dotenv
 from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption
 from audio_encrypter.verify import compare_files, run_folder_stats, get_file_amps, PSNR
@@ -33,3 +36,7 @@ if __name__ == '__main__':
     k2_psnr = PSNR(p1.to_numpy(), k2.to_numpy())
     k1_psnr = PSNR(p1.to_numpy(), k1.to_numpy())
     inter_psnr = PSNR(k1.to_numpy(), k2.to_numpy())
+    for i in range(p1.shape[1]):
+        print(np.corrcoef(p1.iloc[:, i], k1.iloc[:, i]))
+        print(np.corrcoef(p1.iloc[:, i], k2.iloc[:, i]))
+        print(np.corrcoef(k1.iloc[:, i], k2.iloc[:, i]))
