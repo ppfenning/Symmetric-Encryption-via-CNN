@@ -3,7 +3,6 @@ from audio_encrypter.encryption import chaotic_ciphertext
 import numpy as np
 from scipy.io.wavfile import read, write
 import io
-from time import time
 
 
 def read_wav(fname: Path) -> (int, np.ndarray):
@@ -37,36 +36,8 @@ def chaotic_audio_encryption(
     in_file: Path,
     outfile: Path,
     keypath: Path,
-    nruns: int = 1
-) -> tuple[int, np.ndarray, float]:
-    """
-    The chaotic_audio_encryption function takes in a .wav file, encrypts it using the chaotic_ciphertext function,
-    and writes the encrypted audio to an output file. The keypath argument is used to specify where the key should be
-    stored.
-
-    :param in_file: Path: Specify the file path of the audio file to be encrypted
-    :param outfile: Path: Specify the name of the output file
-    :param keypath: Path: Specify the path to the key file
-    :return: The sample rate and the encrypted audio
-    :doc-author: Trelent
-    """
-    print("*"*100)
-    print(f"Encrypting {in_file}:")
-    print("="*100)
-    print(f"Iterations: {nruns}")
-    print(f"File size: {in_file.lstat().st_size/(1024**2):.2f} MB")
+) -> tuple[int, np.ndarray]:
     rate, audio = read_wav(in_file)
-    print(f"Channels: {audio.ndim}")
-    print("-"*100)
-    total_time = 0
-    for _ in range(nruns):
-        t1 = time()
-        cipher_text = chaotic_ciphertext(audio, keypath)
-        t2 = time()
-        total_time += t2 - t1
-    avg_time = total_time / nruns
+    cipher_text = chaotic_ciphertext(audio, keypath)
     write_wav(rate, cipher_text, outfile)
-    print(f"Average encryption time: {avg_time:.5f} seconds")
-    print(f"Encrypted path: {outfile}")
-    return rate, cipher_text, avg_time
-
+    return rate, cipher_text
