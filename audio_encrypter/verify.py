@@ -55,6 +55,19 @@ def __get_file_df(*files) -> pd.DataFrame:
         yield __get_axis_data(file)
 
 
+def PSNR(original, encrypted):
+    original = original/original.max(axis=0)*255
+    encrypted = encrypted/encrypted.max(axis=0)*255
+    diff = original - encrypted
+    mse = np.power(diff, 2).mean()
+    if mse == 0:  # MSE is zero means no noise is present in the signal .
+        # Therefore PSNR have no importance.
+        return 100
+    max_amp = 255.
+    psnr = 20 * np.log10(max_amp / np.sqrt(mse))
+    return psnr
+
+
 def plot_wav(*dfs, figsize: tuple = (12, 8)):
     """
     The plot_wav function takes in a list of files and plots the amplitude of each file.

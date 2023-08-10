@@ -21,7 +21,9 @@ def __transform(data, byte_len):
     :return: A numpy array of the input data in a specified bit format
     :doc-author: Trelent
     """
-    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
+    mod_val = 2**byte_len
+    mult_len = len(str(mod_val).split(".")[-1])
+    return np.mod(np.floor(np.abs(data) * 10 ** mult_len), mod_val)
 
 
 def xor(columns, str_type, axis):
