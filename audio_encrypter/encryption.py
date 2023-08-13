@@ -8,10 +8,10 @@ import re
 def __init_key(keypath: Path):
     keypath.parent.mkdir(parents=True, exist_ok=True)
     chaos_key = {
-        'primer': int(np.random.randint(100, 10000, 1)),
-        'henon': {"params": dict(zip(["a", "b"], [1.4, 0.3])), "v0": np.random.uniform(0, 100, 2).tolist()},
-        'ikeda': {"params": dict(zip(["mu", "beta", "gamma"], [0.7, 0.4, 6])), "v0": np.random.uniform(0, 100, 2).tolist()},
-        'lorenz': {"params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])), "v0": np.random.uniform(0, 100, 3).tolist()},
+        'primer': int(np.random.randint(1, 1000, 1)),
+        'henon': {"params": dict(zip(["a", "b"], [1.4, 0.3])), "v0": np.random.random(2).tolist()},
+        'ikeda': {"params": dict(zip(["mu", "beta", "gamma"], [0.7, 0.4, 6])), "v0": np.random.random(2).tolist()},
+        'lorenz': {"params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])), "v0": np.random.random(3).tolist()},
         'logistic': {"params": dict(zip(["r"], [4])), "v0": np.random.random(1).tolist()},
     }
     with keypath.open('w') as writer:

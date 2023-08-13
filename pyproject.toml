@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "capstoneii"
+name = "chaotic-encryption"
 version = "1.0.0"
 description = ""
 authors = ["pfenningpat <pat.pfenning@blastpoint.com>"]

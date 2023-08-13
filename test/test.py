@@ -48,7 +48,6 @@ if __name__ == '__main__':
     k2_psnr = 0
     k1_psnr = 0
     inter_psnr = 0
-
     ch_cnt = 0
 
     for p_file, k1_file, k2_file in zip(p_files, k1_files, k2_files):
