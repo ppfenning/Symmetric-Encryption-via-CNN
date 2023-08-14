@@ -3,10 +3,6 @@ from numba import njit
 import numpy as np
 
 
-def __chaos_runner(func, v0, params):
-    return func(v0,  params)
-
-
 @njit
 def __transform(data, byte_len):
     """
@@ -28,27 +24,39 @@ def xor(columns, str_type):
     return np.bitwise_xor.reduce(columns.astype(f"u{str_type}")).astype(str_type)
 
 
-def chaotic_functions(chaos_inputs):
-    chaos_inputs["henon"]["func"] = henon
-    chaos_inputs["ikeda"]["func"] = ikeda
-    chaos_inputs["tinkerbell"]["func"] = tinkerbell
-    chaos_inputs["lorenz"]["func"] = lorenz
-    chaos_inputs["logistic"]["func"] = logistic
-    return chaos_inputs
+def __get_chaotic_map(map_name):
+    if map_name == "henon":
+        return henon
+    elif map_name == "ikeda":
+        return ikeda
+    elif map_name == "lorenz":
+        return lorenz
+    elif map_name == "logistic":
+        return logistic
+    elif map_name == "tinkerbell":
+        return tinkerbell
 
 
 def chaotic_attractors(cipher_len, chaos_inputs):
-    chaos_inputs = chaotic_functions(chaos_inputs)
-    attractors = np.zeros((8, cipher_len), dtype=np.float64)
+
+    # get functions and dimensionality
+    dims = 0
+
+    for key in chaos_inputs.keys():
+        if key != "primer":
+            dims += len(chaos_inputs[key]["v0"])
+
+    # set memory for attractor
+    attractors = np.zeros((dims, cipher_len), dtype=np.float64)
     i = 0
-    for maps in ["henon", "ikeda", "lorenz", "logistic"]:
-        chaos_map = chaos_inputs[maps]
-        func = chaos_map["func"]
-        v0 = np.array(chaos_map["v0"])
-        params = tuple(chaos_map["params"].values())
-        dim = len(v0)
-        attractors[i:i+dim, :] = func(v0, cipher_len, params)
-        i += dim
+    for key in chaos_inputs.keys():
+        if key != "primer":
+            chaos_map = chaos_inputs[key]
+            v0 = np.array(chaos_map["v0"])
+            params = tuple(chaos_map["params"].values())
+            dim = len(v0)
+            attractors[i:i + dim, :] = __get_chaotic_map(key)(v0, cipher_len, params)
+            i += dim
     return attractors
 
 
@@ -57,7 +65,7 @@ def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
 
 
 @njit
-def __henon(v0, *params):
+def __henon(v0, steps, *params):
 
     a = params[0]
     b = params[1]
@@ -65,15 +73,18 @@ def __henon(v0, *params):
     x = v0[0]
     y = v0[1]
 
-    return 1 - a * x * x + y, b * x
+    out_val = np.zeros((2, steps))
+
+    for i in np.arange(0, steps):
+        out_val[0, i] = x
+        out_val[1, i] = y
+        x, y = 1 - a * x * x + y, b * x
+
+    return out_val
 
 
 def henon(v0, steps, params):
-    out_val = np.zeros((2, steps))
-    for i in range(steps):
-        out_val[:, i] = v0
-        v0 = __henon(v0, *params)
-    return out_val
+    return __henon(v0, steps, *params)
 
 @njit
 def __lorenz(t, state, sigma, rho, beta):
@@ -99,7 +110,7 @@ def lorenz(v0, steps, params):
 
 
 @njit
-def __ikeda(v0, *params):
+def __ikeda(v0, steps, *params):
 
     mu = params[0]
     beta = params[1]
@@ -108,21 +119,23 @@ def __ikeda(v0, *params):
     x = v0[0]
     y = v0[1]
 
-    t_n = beta - (gamma / (1 + x * x + y * y))
-
-    return 1 - 1 + mu * (x * np.cos(t_n)) - y * np.sin(t_n), mu * (x * np.sin(t_n) + y * np.cos(t_n))
-
-
-def ikeda(v0, steps, params):
     out_val = np.zeros((2, steps))
-    for i in range(steps):
-        out_val[:, i] = v0
-        v0 = __ikeda(v0, *params)
+
+    for i in np.arange(0, steps):
+        out_val[0, i] = x
+        out_val[1, i] = y
+        t_n = beta - (gamma / (1 + x*x + y*y))
+        x, y = 1 - 1 + mu * (x * np.cos(t_n)) - y * np.sin(t_n), mu * (x * np.sin(t_n) + y * np.cos(t_n))
+
     return out_val
 
 
+def ikeda(v0, steps, params):
+    return __ikeda(v0, steps, *params)
+
+
 @njit
-def __tinkerbell(v0, *params):
+def __tinkerbell(v0, steps, *params):
 
     a = params[0]
     b = params[1]
@@ -132,15 +145,18 @@ def __tinkerbell(v0, *params):
     x = v0[0]
     y = v0[1]
 
-    return x*x + y*y + a*x + b*y, 2*x*y + c*x + d*y
+    out_val = np.zeros((2, steps))
+
+    for i in np.arange(0, steps):
+        out_val[0, i] = x
+        out_val[1, i] = y
+        x, y = x*x + y*y + a*x + b*y, 2*x*y + c*x + d*y
+
+    return out_val
 
 
 def tinkerbell(v0, steps, params):
-    out_val = np.zeros((2, steps))
-    for i in range(steps):
-        out_val[:, i] = v0
-        v0 = __ikeda(v0, *params)
-    return out_val
+    return __tinkerbell(v0, steps, *params)
 
 
 @njit
@@ -148,11 +164,12 @@ def __logistic(v0, steps, *params):
 
     r = params[0]
     x = v0[0]
+
     out_val = np.zeros(steps)
 
-    for i in range(steps):
+    for i in np.arange(0, steps):
         out_val[i] = x
-        x = r * x * (1 - x)
+        x = r*x*(1 - x)
 
     return out_val
 
