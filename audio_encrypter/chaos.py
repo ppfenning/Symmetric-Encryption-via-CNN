@@ -37,7 +37,7 @@ def __get_chaotic_map(map_name):
         return tinkerbell
 
 
-def chaotic_attractors(cipher_len, chaos_inputs):
+def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
 
     # get functions and dimensionality
     dims = 0
@@ -55,13 +55,10 @@ def chaotic_attractors(cipher_len, chaos_inputs):
             v0 = np.array(chaos_map["v0"])
             params = tuple(chaos_map["params"].values())
             dim = len(v0)
-            attractors[i:i + dim, :] = __get_chaotic_map(chaos_map["map"])(v0, cipher_len, params)
+            func = __get_chaotic_map(chaos_map["map"])
+            attractors[i:i + dim, :] = __transform(func(v0, cipher_len, params), byte_len)
             i += dim
-    return attractors
-
-
-def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
-    return xor(__transform(chaotic_attractors(cipher_len, chaos_inputs), byte_len), str_type)
+    return xor(attractors, str_type)
 
 
 @njit

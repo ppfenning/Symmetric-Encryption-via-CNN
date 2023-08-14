@@ -14,7 +14,7 @@ if config.exists():
 
 
 DATADIR = Path(getenv('DATADIR', default="data"))
-PLAIN_FILES = DATADIR.joinpath("plaintext")
+PLAIN_FILES = DATADIR.joinpath("check_1")
 ENCRYPTED_FILES = DATADIR.joinpath("encrypt_1")
 DECRYPTED_FILES = DATADIR.joinpath("decrypt_1")
 KEYPATH_1 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key/")))
@@ -28,8 +28,8 @@ DECRYPTED_FILES.mkdir(exist_ok=True)
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    run_folder_stats(PLAIN_FILES, ENCRYPTED_FILES, "", KEYPATH_1)
-    run_folder_stats(ENCRYPTED_FILES, DECRYPTED_FILES, "", KEYPATH_1)
+    run_folder_stats(PLAIN_FILES, ENCRYPTED_FILES, "", KEYPATH_1, 1)
+    run_folder_stats(ENCRYPTED_FILES, DECRYPTED_FILES, "", KEYPATH_1, 1)
 
     p_files = list(PLAIN_FILES.iterdir())
     p_files.sort()
