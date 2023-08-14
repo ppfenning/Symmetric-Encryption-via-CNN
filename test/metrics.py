@@ -46,6 +46,7 @@ if __name__ == '__main__':
 
     dec_psnr = 0
     enc_psnr = 0
+    random_psnr = 0
 
     entropy_diff = 0
 
@@ -56,6 +57,7 @@ if __name__ == '__main__':
         enc, dec, p1 = get_file_amps(enc_file,  dec_file, p_file)
 
         enc_psnr += PSNR(p1.to_numpy(), enc.to_numpy())
+        random_psnr += PSNR(p1.to_numpy(), np.random.random(p1.shape))
         dec_psnr += PSNR(p1.to_numpy(), dec.to_numpy())
 
         for i in range(p1.shape[1]):
@@ -74,5 +76,6 @@ if __name__ == '__main__':
 
     dec_psnr = dec_psnr/len(p_files)
     enc_psnr = enc_psnr/len(p_files)
+    random_psnr = random_psnr/len(p_files)
 
     entropy_diff = entropy_diff/len(p_files)
