@@ -13,6 +13,5 @@ if __name__ == '__main__':
     fname = "CantinaBand60.wav"
     in_file = PLAIN_FILES.joinpath(fname)
     out_file = ENCRYPTED_FILES.joinpath(fname)
-
     # Plot the solution
-    sol_lorenz = chaotic_audio_encryption(in_file, out_file, KEYPATH_1)
+    sol = chaotic_audio_encryption(in_file, out_file, KEYPATH_1)

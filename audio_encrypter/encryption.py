@@ -9,8 +9,9 @@ def __init_key(keypath: Path):
     keypath.parent.mkdir(parents=True, exist_ok=True)
     chaos_key = {
         'primer': int(np.random.randint(1, 1000, 1)),
-        'henon': {"params": dict(zip(["a", "b"], [1.4, 0.3])), "v0": np.random.random(2).tolist()},
+        'henon': {"params": dict(zip(["a", "b"], [1.4, 0.3])), "v0": np.random.uniform(-0.1, 0.1, 2).tolist()},
         'ikeda': {"params": dict(zip(["mu", "beta", "gamma"], [0.7, 0.4, 6])), "v0": np.random.random(2).tolist()},
+        'tinkerbell': {"params": dict(zip(["a", "b", "c", "d"], [0.9, -0.6013, 2, 0.5])), "v0": np.random.uniform(-0.1, 0.1, 2).tolist()},
         'lorenz': {"params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])), "v0": np.random.random(3).tolist()},
         'logistic': {"params": dict(zip(["r"], [4])), "v0": np.random.random(1).tolist()},
     }

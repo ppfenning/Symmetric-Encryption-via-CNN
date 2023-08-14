@@ -1,4 +1,4 @@
-from scipy.integrate import solve_ivp, odeint
+from scipy.integrate import solve_ivp
 from numba import njit
 import numpy as np
 
@@ -21,7 +21,7 @@ def __transform(data, byte_len):
     :return: A numpy array of the input data in a specified bit format
     :doc-author: Trelent
     """
-    return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
+    return np.mod(np.floor(np.abs(data) * 10 ** 8), 2**byte_len)
 
 
 def xor(columns, str_type):
@@ -31,12 +31,13 @@ def xor(columns, str_type):
 def chaotic_functions(chaos_inputs):
     chaos_inputs["henon"]["func"] = henon
     chaos_inputs["ikeda"]["func"] = ikeda
+    chaos_inputs["tinkerbell"]["func"] = tinkerbell
     chaos_inputs["lorenz"]["func"] = lorenz
     chaos_inputs["logistic"]["func"] = logistic
     return chaos_inputs
 
 
-def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
+def chaotic_attractors(cipher_len, chaos_inputs):
     chaos_inputs = chaotic_functions(chaos_inputs)
     attractors = np.zeros((8, cipher_len), dtype=np.float64)
     i = 0
@@ -48,7 +49,11 @@ def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
         dim = len(v0)
         attractors[i:i+dim, :] = func(v0, cipher_len, params)
         i += dim
-    return xor(__transform(attractors, byte_len), str_type)
+    return attractors
+
+
+def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
+    return xor(__transform(chaotic_attractors(cipher_len, chaos_inputs), byte_len), str_type)
 
 
 @njit
@@ -109,6 +114,28 @@ def __ikeda(v0, *params):
 
 
 def ikeda(v0, steps, params):
+    out_val = np.zeros((2, steps))
+    for i in range(steps):
+        out_val[:, i] = v0
+        v0 = __ikeda(v0, *params)
+    return out_val
+
+
+@njit
+def __tinkerbell(v0, *params):
+
+    a = params[0]
+    b = params[1]
+    c = params[2]
+    d = params[3]
+
+    x = v0[0]
+    y = v0[1]
+
+    return x*x + y*y + a*x + b*y, 2*x*y + c*x + d*y
+
+
+def tinkerbell(v0, steps, params):
     out_val = np.zeros((2, steps))
     for i in range(steps):
         out_val[:, i] = v0
