@@ -9,19 +9,23 @@ def __init_key(keypath: Path):
     keypath.parent.mkdir(parents=True, exist_ok=True)
     chaos_key = {
         'primer': int(np.random.randint(1, 1000, 1)),
-        'henon': {
+        'henon_1': {
+            "map": "henon",
             "params": dict(zip(["a", "b"], [1.4, 0.3])),
             "v0": np.random.uniform(-0.1, 0.1, 2).tolist()
         },
-        'ikeda': {
+        'ikeda_1': {
+            "map": "ikeda",
             "params": dict(zip(["mu", "beta", "gamma"], [0.7, 0.4, 6])),
             "v0": np.random.uniform(-10, 10, 2).tolist()
         },
-        'lorenz': {
+        'lorenz_1': {
+            "map": "lorenz",
             "params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])),
             "v0": np.random.random(3).tolist()
         },
-        'logistic': {
+        'logistic_1': {
+            "map": "logistic",
             "params": dict(zip(["r"], [4])),
             "v0": np.random.random(1).tolist()
         },

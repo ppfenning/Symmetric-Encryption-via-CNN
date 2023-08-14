@@ -17,7 +17,7 @@ def __transform(data, byte_len):
     :return: A numpy array of the input data in a specified bit format
     :doc-author: Trelent
     """
-    return np.mod(np.floor(np.abs(data) * 10 ** 8), 2**byte_len)
+    return np.mod(np.floor(data * 10 ** (byte_len/2)), 2**byte_len)
 
 
 def xor(columns, str_type):
@@ -55,7 +55,7 @@ def chaotic_attractors(cipher_len, chaos_inputs):
             v0 = np.array(chaos_map["v0"])
             params = tuple(chaos_map["params"].values())
             dim = len(v0)
-            attractors[i:i + dim, :] = __get_chaotic_map(key)(v0, cipher_len, params)
+            attractors[i:i + dim, :] = __get_chaotic_map(chaos_map["map"])(v0, cipher_len, params)
             i += dim
     return attractors
 

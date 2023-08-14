@@ -14,31 +14,30 @@ if config.exists():
 
 
 DATADIR = Path(getenv('DATADIR', default="data"))
-PLAIN_FILES = DATADIR.joinpath("check_2")
-ENCRYPTED_FILES_2 = DATADIR.joinpath("key_1")
-ENCRYPTED_FILES_1 = DATADIR.joinpath("key_2")
-DECRYPTED_FILES = DATADIR.joinpath("decrypted")
+PLAIN_FILES = DATADIR.joinpath("check_1")
+ENCRYPTED_FILES = DATADIR.joinpath("encrypt_1")
+DECRYPTED_FILES = DATADIR.joinpath("decrypt_1")
 KEYPATH_1 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key/")))
-KEYPATH_2 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key_3/")))
 
 DATADIR.mkdir(exist_ok=True)
 PLAIN_FILES.mkdir(exist_ok=True)
+ENCRYPTED_FILES.mkdir(exist_ok=True)
 DECRYPTED_FILES.mkdir(exist_ok=True)
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    run_folder_stats(PLAIN_FILES, ENCRYPTED_FILES_2, "", 1, KEYPATH_2)
-    run_folder_stats(ENCRYPTED_FILES_2, ENCRYPTED_FILES_1, "", 2, KEYPATH_2)
+    run_folder_stats(PLAIN_FILES, ENCRYPTED_FILES, "", 1, KEYPATH_1)
+    run_folder_stats(ENCRYPTED_FILES, DECRYPTED_FILES, "", 2, KEYPATH_1)
 
     p_files = list(PLAIN_FILES.iterdir())
     p_files.sort()
 
-    k1_files = list(ENCRYPTED_FILES_1.iterdir())
+    k1_files = list(ENCRYPTED_FILES.iterdir())
     k1_files.sort()
 
-    k2_files = list(ENCRYPTED_FILES_2.iterdir())
+    k2_files = list(DECRYPTED_FILES.iterdir())
     k2_files.sort()
 
     p1_k1 = np.zeros((2, 2))
