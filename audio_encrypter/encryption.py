@@ -38,11 +38,11 @@ def __get_chaos_key(keypath: Path):
 
 def __get_new_audio(audio, cipher, str_type):
     if audio.ndim == 1:
-        return xor(np.array([audio, cipher]), str_type, 0)
+        return xor(np.array([audio, cipher]), str_type)
     else:
         new_audio = np.zeros(audio.shape, dtype=str_type)
         for i, channel in enumerate(audio.T):
-            new_audio[:, i] = xor(np.array([channel, cipher]), str_type, 0)
+            new_audio[:, i] = xor(np.array([channel, cipher]), str_type)
         return new_audio
 
 
@@ -52,5 +52,8 @@ def chaotic_ciphertext(audio, chaos_key_path):
     chaos_key = __get_chaos_key(chaos_key_path.joinpath("key.yaml"))
     primer = chaos_key["primer"]
     cipher_len = primer + audio.shape[0]
-    cipher = chaotic_cipher(cipher_len, chaos_key, str_type, byte_len)[primer:]
-    return __get_new_audio(audio, cipher, str_type)
+    return __get_new_audio(
+        audio,
+        chaotic_cipher(cipher_len, chaos_key, str_type, byte_len)[primer:],
+        str_type
+    )

@@ -24,8 +24,8 @@ def __transform(data, byte_len):
     return np.mod(np.floor(np.abs(data) * 10 ** 10), 2**byte_len)
 
 
-def xor(columns, str_type, axis):
-    return np.bitwise_xor.reduce(columns.astype(f"u{str_type}"), axis=axis).astype(str_type)
+def xor(columns, str_type):
+    return np.bitwise_xor.reduce(columns.astype(f"u{str_type}")).astype(str_type)
 
 
 def chaotic_functions(chaos_inputs):
@@ -38,18 +38,17 @@ def chaotic_functions(chaos_inputs):
 
 def chaotic_cipher(cipher_len, chaos_inputs, str_type, byte_len):
     chaos_inputs = chaotic_functions(chaos_inputs)
-    xored = np.zeros((cipher_len, 8), dtype=np.float64)
+    attractors = np.zeros((8, cipher_len), dtype=np.float64)
     i = 0
     for maps in ["henon", "ikeda", "lorenz", "logistic"]:
         chaos_map = chaos_inputs[maps]
         func = chaos_map["func"]
         v0 = np.array(chaos_map["v0"])
         params = tuple(chaos_map["params"].values())
-        columns = func(v0, cipher_len, params)
         dim = len(v0)
-        xored[:, i:i+dim] = columns
+        attractors[i:i+dim, :] = func(v0, cipher_len, params)
         i += dim
-    return xor(__transform(xored, byte_len), str_type, 1)
+    return xor(__transform(attractors, byte_len), str_type)
 
 
 @njit
@@ -65,9 +64,9 @@ def __henon(v0, *params):
 
 
 def henon(v0, steps, params):
-    out_val = np.zeros((steps, 2))
+    out_val = np.zeros((2, steps))
     for i in range(steps):
-        out_val[i] = v0
+        out_val[:, i] = v0
         v0 = __henon(v0, *params)
     return out_val
 
@@ -91,7 +90,7 @@ def lorenz(v0, steps, params):
         t_eval=t_eval,
         method='RK45'
     )
-    return sol.y.T
+    return sol.y
 
 
 @njit
@@ -110,9 +109,9 @@ def __ikeda(v0, *params):
 
 
 def ikeda(v0, steps, params):
-    out_val = np.zeros((steps, 2))
+    out_val = np.zeros((2, steps))
     for i in range(steps):
-        out_val[i] = v0
+        out_val[:, i] = v0
         v0 = __ikeda(v0, *params)
     return out_val
 
@@ -122,7 +121,7 @@ def __logistic(v0, steps, *params):
 
     r = params[0]
     x = v0[0]
-    out_val = np.zeros((steps, 1))
+    out_val = np.zeros(steps)
 
     for i in range(steps):
         out_val[i] = x
