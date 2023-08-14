@@ -30,6 +30,7 @@ def write_wav(rate: int, data: np.ndarray, outfile: Path) -> tuple[int, np.ndarr
     """
     Path.mkdir(outfile.parent, exist_ok=True)
     write(outfile, rate, data)
+    return rate, data
 
 
 def chaotic_audio_encryption(
