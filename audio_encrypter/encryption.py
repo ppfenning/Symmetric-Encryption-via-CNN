@@ -22,7 +22,7 @@ def __init_key(keypath: Path):
         'lorenz_1': {
             "map": "lorenz",
             "params": dict(zip(["sigma", "beta", "rho"], [10, 8 / 3, 28])),
-            "v0": np.random.random(3).tolist()
+            "v0": np.random.uniform(-10, 10, 3).tolist()
         },
         'logistic_1': {
             "map": "logistic",

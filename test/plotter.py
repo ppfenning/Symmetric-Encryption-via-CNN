@@ -3,14 +3,14 @@ from pathlib import Path
 from os import getenv
 
 DATADIR = Path(getenv('DATADIR', default="../data"))
-PLAIN_FILES = DATADIR.joinpath("check_2")
+PLAIN_FILES = DATADIR.joinpath("plaintext")
 ENCRYPTED_FILES = DATADIR.joinpath("key_1")
 KEYPATH_1 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key/")))
 
 
 if __name__ == '__main__':
 
-    fname = "CantinaBand60.wav"
+    fname = "rainfall_1_hour.wav"
     in_file = PLAIN_FILES.joinpath(fname)
     out_file = ENCRYPTED_FILES.joinpath(fname)
     # Plot the solution

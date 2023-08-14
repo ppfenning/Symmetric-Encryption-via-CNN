@@ -1,4 +1,4 @@
-from scipy.integrate import solve_ivp
+from scipy.integrate import odeint
 from numba import njit
 import numpy as np
 
@@ -87,26 +87,25 @@ def henon(v0, steps, params):
     return __henon(v0, steps, *params)
 
 @njit
-def __lorenz(t, state, sigma, rho, beta):
-    x, y, z = state
-    dxdt = sigma * (y - x)
-    dydt = x * (rho - z) - y
-    dzdt = x * y - beta * z
-    return [dxdt, dydt, dzdt]
+def __lorenz(v0, t, *params):
+
+    sigma = params[0]
+    beta = params[1]
+    rho = params[2]
+
+    x = v0[0]
+    y = v0[1]
+    z = v0[2]
+
+    dxdt = sigma*(y - x)
+    dydt = x*(rho - z) - y
+    dzdt = x*y - beta*z
+
+    return x+dxdt, y+dydt, z+dzdt
 
 
 def lorenz(v0, steps, params):
-    t_span = (0, 40)
-    t_eval = np.linspace(*t_span, steps)
-    sol = solve_ivp(
-        fun=__lorenz,
-        t_span=t_span,
-        y0=v0,
-        args=params,
-        t_eval=t_eval,
-        method='RK45'
-    )
-    return sol.y
+    return odeint(__lorenz, v0, np.arange(0, steps), args=params).T
 
 
 @njit

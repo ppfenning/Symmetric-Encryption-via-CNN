@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption
-from audio_encrypter.verify import compare_files, run_folder_stats, get_file_amps, PSNR
+from audio_encrypter.verify import compare_files, run_folder_stats, get_file_amps, PSNR, wav_entropy
 
 config = Path("../config/.env")
 
@@ -14,7 +14,7 @@ if config.exists():
 
 
 DATADIR = Path(getenv('DATADIR', default="data"))
-PLAIN_FILES = DATADIR.joinpath("check_1")
+PLAIN_FILES = DATADIR.joinpath("plaintext")
 ENCRYPTED_FILES = DATADIR.joinpath("encrypt_1")
 DECRYPTED_FILES = DATADIR.joinpath("decrypt_1")
 KEYPATH_1 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key/")))
@@ -28,42 +28,51 @@ DECRYPTED_FILES.mkdir(exist_ok=True)
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    run_folder_stats(PLAIN_FILES, ENCRYPTED_FILES, "", 1, KEYPATH_1)
-    run_folder_stats(ENCRYPTED_FILES, DECRYPTED_FILES, "", 2, KEYPATH_1)
+    run_folder_stats(PLAIN_FILES, ENCRYPTED_FILES, "", KEYPATH_1)
+    run_folder_stats(ENCRYPTED_FILES, DECRYPTED_FILES, "", KEYPATH_1)
 
     p_files = list(PLAIN_FILES.iterdir())
     p_files.sort()
 
-    k1_files = list(ENCRYPTED_FILES.iterdir())
-    k1_files.sort()
+    enc_files = list(ENCRYPTED_FILES.iterdir())
+    enc_files.sort()
 
-    k2_files = list(DECRYPTED_FILES.iterdir())
-    k2_files.sort()
+    dec_files = list(DECRYPTED_FILES.iterdir())
+    dec_files.sort()
 
-    p1_k1 = np.zeros((2, 2))
-    p1_k2 = np.zeros((2, 2))
-    k1_k2 = np.zeros((2, 2))
+    p1_enc = np.zeros((2, 2))
+    p1_dec = np.zeros((2, 2))
+    enc_dec = np.zeros((2, 2))
 
-    k2_psnr = 0
-    k1_psnr = 0
-    inter_psnr = 0
+    dec_psnr = 0
+    enc_psnr = 0
+
+    entropy_diff = 0
+
     ch_cnt = 0
 
-    for p_file, k1_file, k2_file in zip(p_files, k1_files, k2_files):
-        k1, k2, p1 = get_file_amps(k1_file,  k2_file, p_file)
-        k2_psnr += PSNR(p1.to_numpy(), k2.to_numpy())
-        k1_psnr += PSNR(p1.to_numpy(), k1.to_numpy())
-        inter_psnr += PSNR(k1.to_numpy(), k2.to_numpy())
+    for p_file, enc_file, dec_file in zip(p_files, enc_files, dec_files):
+
+        enc, dec, p1 = get_file_amps(enc_file,  dec_file, p_file)
+
+        enc_psnr += PSNR(p1.to_numpy(), enc.to_numpy())
+        dec_psnr += PSNR(p1.to_numpy(), dec.to_numpy())
+
         for i in range(p1.shape[1]):
-            p1_k1 += np.corrcoef(p1.iloc[:, i], k1.iloc[:, i])
-            p1_k2 += np.corrcoef(p1.iloc[:, i], k2.iloc[:, i])
-            k1_k2 += np.corrcoef(k1.iloc[:, i], k2.iloc[:, i])
+
+            p1_enc += np.corrcoef(p1.iloc[:, i], enc.iloc[:, i])
+            p1_dec += np.corrcoef(p1.iloc[:, i], dec.iloc[:, i])
+            enc_dec += np.corrcoef(enc.iloc[:, i], dec.iloc[:, i])
+
+            entropy_diff += wav_entropy(enc.iloc[:, i]) - wav_entropy(p1.iloc[:, i])
+
             ch_cnt += 1
 
-    p1_k1 = p1_k1/ch_cnt
-    p1_k2 = p1_k2/ch_cnt
-    k1_k2 = k1_k2/ch_cnt
+    p1_enc = p1_enc/ch_cnt
+    p1_dec = p1_dec/ch_cnt
+    enc_dec = enc_dec/ch_cnt
 
-    k2_psnr = k2_psnr/len(p_files)
-    k1_psnr = k1_psnr/len(p_files)
-    inter_psnr = inter_psnr/len(p_files)
+    dec_psnr = dec_psnr/len(p_files)
+    enc_psnr = enc_psnr/len(p_files)
+
+    entropy_diff = entropy_diff/len(p_files)
