@@ -1,5 +1,5 @@
 from pathlib import Path
-from audio_encrypter.encryption import chaotic_ciphertext
+from chaotic_encrypter.encryption import chaotic_ciphertext
 import numpy as np
 from scipy.io.wavfile import read, write
 import io

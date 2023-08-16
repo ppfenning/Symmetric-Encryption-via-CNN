@@ -3,7 +3,7 @@ from scipy.stats import entropy
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
-from audio_encrypter.chaotic_audio_encryption import read_wav, chaotic_ciphertext, write_wav
+from chaotic_encrypter.chaotic_audio_encryption import read_wav, chaotic_ciphertext, write_wav
 from acoustid import fingerprint_file
 from time import time
 

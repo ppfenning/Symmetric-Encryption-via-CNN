@@ -1,11 +1,8 @@
 from pathlib import Path
 from os import getenv
-
-import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
-from audio_encrypter.chaotic_audio_encryption import chaotic_audio_encryption
-from audio_encrypter.verify import compare_files, run_folder_stats, get_file_amps, PSNR, wav_entropy
+from test.verify import compare_files, run_folder_stats, get_file_amps, PSNR, wav_entropy
 
 config = Path("../config/.env")
 
@@ -17,7 +14,7 @@ DATADIR = Path(getenv('DATADIR', default="data"))
 PLAIN_FILES = DATADIR.joinpath("check_1")
 ENCRYPTED_FILES = DATADIR.joinpath("encrypt_1")
 DECRYPTED_FILES = DATADIR.joinpath("decrypt_1")
-KEYPATH_1 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key/")))
+KEYPATH_1 = Path(getenv('KEYPATH', default=Path.home().joinpath(".chaos-encrypt/chaos_key.yaml")))
 
 DATADIR.mkdir(exist_ok=True)
 PLAIN_FILES.mkdir(exist_ok=True)
