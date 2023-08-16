@@ -43,8 +43,8 @@ class ChaosKey:
             "v0": np.random.random(2).tolist()
         }
     
-    def __call__(self, keypath: Path):
-        chaos_key = self.__get_chaos_key(keypath)
+    def __call__(self, key_name: str):
+        chaos_key = self.__get_chaos_key(Path.home().joinpath(".chaos-encrypt", key_name).with_suffix(".yaml"))
         chaos_maps = dict()
         for k, v in chaos_key.items():
             chaos_maps[k] = {
@@ -54,7 +54,7 @@ class ChaosKey:
             }
         return chaos_maps
 
-    def __get_chaos_key(self, keypath: Path):
+    def __get_chaos_key(self, key_path: Path):
         """
         The __get_chaos_key function is used to generate a random seed for the chaos functions.
         The keypath argument is a pathlib Path object that points to where the file should be saved.
@@ -65,20 +65,20 @@ class ChaosKey:
         :return: A dictionary of the form:
         :doc-author: Trelent
         """
-        if not keypath.exists():
-            return self.__init_key(keypath)
-        with keypath.open('r') as reader:
+        if not key_path.exists():
+            return self.__init_key(key_path)
+        with key_path.open('r') as reader:
             return yaml.safe_load(reader.read())
 
-    def __init_key(self, keypath: Path):
-        keypath.parent.mkdir(parents=True, exist_ok=True)
+    def __init_key(self, key_path: Path):
+        key_path.parent.mkdir(parents=True, exist_ok=True)
         chaos_key = {
             'henon': self.__henon_init(),
             'ikeda': self.__ikeda_init(),
             'lorenz': self.__lorenz_init(),
             'logistic': self.__logistic_init(),
         }
-        with keypath.open('w') as writer:
+        with key_path.open('w') as writer:
             yaml.dump(chaos_key, writer)
         return chaos_key
 
