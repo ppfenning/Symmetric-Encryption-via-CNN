@@ -1,5 +1,5 @@
 from pathlib import Path
-from audio_encrypter.encryption import chaotic_ciphertext
+from chaotic_encrypter.encryption import chaotic_ciphertext
 import numpy as np
 from scipy.io.wavfile import read, write
 import io
@@ -30,14 +30,15 @@ def write_wav(rate: int, data: np.ndarray, outfile: Path) -> tuple[int, np.ndarr
     """
     Path.mkdir(outfile.parent, exist_ok=True)
     write(outfile, rate, data)
+    return rate, data
 
 
 def chaotic_audio_encryption(
     in_file: Path,
-    outfile: Path,
+    out_file: Path,
     keypath: Path,
 ) -> tuple[int, np.ndarray]:
     rate, audio = read_wav(in_file)
     cipher_text = chaotic_ciphertext(audio, keypath)
-    write_wav(rate, cipher_text, outfile)
+    write_wav(rate, cipher_text, out_file)
     return rate, cipher_text

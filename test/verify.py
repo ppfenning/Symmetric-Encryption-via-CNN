@@ -1,8 +1,9 @@
 import numpy as np
+from scipy.stats import entropy
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
-from audio_encrypter.chaotic_audio_encryption import read_wav, chaotic_ciphertext, write_wav
+from chaotic_encrypter.chaotic_audio_encryption import read_wav, chaotic_ciphertext, write_wav
 from acoustid import fingerprint_file
 from time import time
 
@@ -53,6 +54,11 @@ def __get_file_df(*files) -> pd.DataFrame:
     """
     for file in files:
         yield __get_axis_data(file)
+
+
+def wav_entropy(wav, base=None):
+  value,counts = np.unique(wav, return_counts=True)
+  return entropy(counts, base=base)
 
 
 def PSNR(original, encrypted):
@@ -121,8 +127,8 @@ def compare_files(*files) -> [bool, list[pd.DataFrame]]:
 def avg_chaotic_audio_encryption_time(
     in_file: Path,
     outfile: Path,
-    nruns: int,
     keypath: Path,
+    nruns: int | None = None
 ) -> dict:
     """
     The chaotic_audio_encryption function takes in a .wav file, encrypts it using the chaotic_ciphertext function,
@@ -135,6 +141,8 @@ def avg_chaotic_audio_encryption_time(
     :return: The sample rate and the encrypted audio
     :doc-author: Trelent
     """
+    if not nruns:
+        nruns = 5
     print("*"*100)
     print(f"Encrypting {in_file}:")
     print("="*100)
@@ -143,26 +151,25 @@ def avg_chaotic_audio_encryption_time(
     rate, audio = read_wav(in_file)
     print(f"Channels: {audio.ndim}")
     print("-"*100)
-    total_time = 0
-    avg_time = total_time / nruns
     size = in_file.lstat().st_size / (1024 ** 2)
     t1 = time()
     for _ in range(nruns):
         encrypted = chaotic_ciphertext(audio, keypath)
     t2 = time()
+    avg_time = (t2-t1)/nruns
     print(f"Average encryption time: {avg_time:.5f} seconds")
     write_wav(rate, encrypted, outfile)
     print(f"Encrypted path: {outfile}")
     return {
         "size": size,
-        "encryption_time": (t2-t1)/nruns,
+        "encryption_time": avg_time,
         "channels": audio.ndim
     }
 
 
-def run_folder_stats(in_folder, out_folder, prefix, nruns, keypath):
+def run_folder_stats(in_folder, out_folder, prefix, keypath, nruns=None):
     stats = dict()
     for in_file in in_folder.iterdir():
         out_file = out_folder.joinpath(f"{prefix}{in_file.name}")
-        stats[in_file.name] = avg_chaotic_audio_encryption_time(in_file, out_file, nruns, keypath)
+        stats[in_file.name] = avg_chaotic_audio_encryption_time(in_file, out_file, keypath, nruns)
     return pd.DataFrame(stats).T.sort_values("size")
