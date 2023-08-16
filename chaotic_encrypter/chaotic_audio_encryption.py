@@ -36,9 +36,9 @@ def write_wav(rate: int, data: np.ndarray, outfile: Path) -> tuple[int, np.ndarr
 def chaotic_audio_encryption(
     in_file: Path,
     out_file: Path,
-    keypath: Path,
+    key_path: Path,
 ) -> tuple[int, np.ndarray]:
     rate, audio = read_wav(in_file)
-    cipher_text = chaotic_ciphertext(audio, keypath)
+    cipher_text = chaotic_ciphertext(audio, key_path)
     write_wav(rate, cipher_text, out_file)
     return rate, cipher_text

@@ -8,7 +8,7 @@ from chaotic_encrypter.chaos import henon, ikeda, lorenz, logistic, tinkerbell
 class ChaosKey:
 
     @staticmethod
-    def henon_init():
+    def __henon_init():
         return {
             "map": "henon",
             'primer': int(np.random.randint(1, 1000, 1)),
@@ -17,7 +17,7 @@ class ChaosKey:
         }
 
     @staticmethod
-    def lorenz_init():
+    def __lorenz_init():
         return {
             "map": "lorenz",
             'primer': int(np.random.randint(1, 1000, 1)),
@@ -26,7 +26,7 @@ class ChaosKey:
         }
 
     @staticmethod
-    def logistic_init():
+    def __logistic_init():
         return {
             "map": "logistic",
             'primer': int(np.random.randint(1, 1000, 1)),
@@ -35,7 +35,7 @@ class ChaosKey:
         }
 
     @staticmethod
-    def ikeda_init():
+    def __ikeda_init():
         return {
             "map": "ikeda",
             'primer': int(np.random.randint(1, 1000, 1)),
@@ -73,10 +73,10 @@ class ChaosKey:
     def __init_key(self, keypath: Path):
         keypath.parent.mkdir(parents=True, exist_ok=True)
         chaos_key = {
-            'henon': self.henon_init(),
-            'ikeda': self.ikeda_init(),
-            'lorenz': self.lorenz_init(),
-            'logistic': self.logistic_init(),
+            'henon': self.__henon_init(),
+            'ikeda': self.__ikeda_init(),
+            'lorenz': self.__lorenz_init(),
+            'logistic': self.__logistic_init(),
         }
         with keypath.open('w') as writer:
             yaml.dump(chaos_key, writer)
